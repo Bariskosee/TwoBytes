@@ -13,10 +13,12 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 | Kurum girişi, canlı gelen kutusu, önlemler ve gerçek takip sorgusu | ✅ Yerelde doğrulandı | Barış |
 | `GET /api/map` ve `GET /api/scorecard` | 🟡 Örnek yanıt | Barış |
 | Özel fotoğraf, haftalık harita özeti ve karne hesabı | ⬜ Sırada | Barış |
-| Expo ve mobil ekranlar | 🟡 Geliştirme sürüyor | Sude |
+| Expo iskeleti, ekran taslakları ve telefondan ilk API denemesi | 🟡 İskelet derleniyor, fiziksel telefonda doğrulanacak | Sude |
+| Mobil harita katmanı, konum ve zaman seçimi, fotoğraf | ⬜ Sırada | Sude |
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `sude/mobile-setup`.** `apps/mobile` altında Expo (SDK 58) ve Expo Router iskeleti eklendi. Beş sekme var: Harita, Bildir, Takip, Karne ve Bağlantı. Harita, Karne ve Takip ekranları API'den okur. Bildir ekranı taslaktır ve gönderim düğmesi kapalıdır. Bağlantı sekmesi sunucuya ulaşmayı ve kurgu bir bildirim göndermeyi dener. `apps/web/src/lib/contract.ts` dosyası `apps/mobile/src/api/contract.ts` olarak birebir kopyalandı. Web tarafında değişiklik yok. Barış için: `contract.ts` değişirse mobil kopyası da güncellenmeli. Mobil, API adresini `EXPO_PUBLIC_API_URL` ile okur. Kurulum adımları aşağıdaki "Mobil uygulamayı çalıştırma" bölümünde.
 - **2026-11-28, `baris/report-inbox-measures`.** Güncel `/kurum` paneli ve API yayımlanıyor. Bildirim konuma göre yönlenir ve mobil gövdeden `placeType` kaldırıldı. Takipte gönderimin döndürdüğü kod kullanılır.
 - **2026-11-27, `baris/web-supabase-setup`.** Next.js API, ilk Supabase şeması ve iki demo kurum hazırlandı. Bildirim kaydı ve aynı gönderimin tekrarı doğrulandı. Harita, takip ve karne için ilk örnek yanıtlar eklendi.
 
@@ -102,6 +104,26 @@ on conflict do nothing;
 ```
 
 Fotoğrafsız kayıt, konuma göre yönlendirme, kurum paneli, önlem işlemleri ve takip kodu sorgusu veritabanına bağlıdır. Harita ve karne uçları sözleşmeye uygun örnek veri döndürür ve `X-TwoBytes-Sample: 1` başlığını taşır. Expo ekranları, gerçek özet hesapları ve özel fotoğraf akışı takvimdeki sonraki teslimatlar arasındadır.
+
+### Mobil uygulamayı çalıştırma
+
+Telefonda Expo Go uygulaması kurulu olmalı. Telefon ve API'yi çalıştıran bilgisayar aynı ağda olmalı. Komutlar `apps/mobile` içinde çalıştırılır.
+
+```bash
+npm ci
+```
+
+`apps/mobile/.env.local` dosyasını oluşturup tek satır yazın. Adres sır değildir, ama her bilgisayarda değişir. Dosya git'e girmez.
+
+```text
+EXPO_PUBLIC_API_URL=http://<API-bilgisayarinin-ip-adresi>:3187
+```
+
+```bash
+npx expo start --clear
+```
+
+Terminaldeki QR kodunu Expo Go ile okutun. Önce **Bağlantı** sekmesinde **Bağlantıyı dene** düğmesini kullanın. Başarılı olursa **Test bildirimi gönder** takip kodu döndürür. Kod, Takip sekmesinde sorgulanabilir. Kontroller için `npm run typecheck` kullanılır.
 
 ## Veri modeli ve iş kuralları
 
