@@ -11,13 +11,14 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 | Supabase şeması, kurum yetkileri ve iki demo kurum | ✅ Yerelde doğrulandı | Barış |
 | Fotoğrafsız bildirim, konuma göre yönlendirme ve ağ tekrarı | ✅ Yerelde doğrulandı | Barış |
 | Kurum girişi, canlı gelen kutusu, önlemler ve gerçek takip sorgusu | ✅ Yerelde doğrulandı | Barış |
-| `GET /api/map` ve `GET /api/scorecard` | 🟡 Örnek yanıt | Barış |
-| Özel fotoğraf, haftalık harita özeti ve karne hesabı | ⬜ Sırada | Barış |
+| Özel fotoğraf yükleme ve yetkili kurum görüntüleme | ✅ Yerelde doğrulandı | Barış |
+| Haftalık yoğunluk haritası ve gerçek kurum karnesi | ✅ Yerelde doğrulandı | Barış |
 | Expo ve mobil ekranlar | 🟡 Geliştirme sürüyor | Sude |
 
 ### Değişiklik günlüğü
 
-- **2026-11-28, `baris/report-inbox-measures`.** Güncel `/kurum` paneli ve API yayımlanıyor. Bildirim konuma göre yönlenir ve mobil gövdeden `placeType` kaldırıldı. Takipte gönderimin döndürdüğü kod kullanılır.
+- **2026-11-28, `baris/report-inbox-measures`.** Fotoğraflı bildirim için FormData eklendi. Kurum görevlisi özel fotoğrafı panelden açabiliyor. Harita ve karne veritabanından hesaplanıyor. Mobil yanıt alanları aynı, örnek yanıt başlığı kaldırıldı.
+- **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli ve gerçek takip API’si eklendi. Bildirim konuma göre yönlenir ve mobil gövdeden `placeType` kaldırıldı. Takipte gönderimin döndürdüğü kod kullanılır.
 - **2026-11-27, `baris/web-supabase-setup`.** Next.js API, ilk Supabase şeması ve iki demo kurum hazırlandı. Bildirim kaydı ve aynı gönderimin tekrarı doğrulandı. Harita, takip ve karne için ilk örnek yanıtlar eklendi.
 
 ## Ürün kapsamı
@@ -37,7 +38,7 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 | Katman | Teknoloji ve görev |
 | --- | --- |
 | Mobil | Expo, React Native ve TypeScript. Konum seçimi ve yoğunluk katmanı için `react-native-maps`, isteğe bağlı fotoğraf için `expo-image-picker`. İlk fiziksel cihaz testi Expo Go ile yapılır. |
-| Web ve API | Next.js App Router ve TypeScript. Kurum paneli `/kurum` adresinde açılır. Mobil uygulama aynı Next.js uygulamasındaki JSON API’yi çağırır. |
+| Web ve API | Next.js App Router ve TypeScript. Kurum paneli `/kurum` adresinde açılır. Mobil uygulama Next.js API’sini çağırır. Fotoğraflı bildirim FormData kullanır. |
 | Veri ve erişim | Supabase Postgres, PostGIS ve Auth. Kurum üyeliği veritabanında tutulur. Satır bazlı erişim politikaları (RLS), görevlinin kurumunun kayıtlarını okumasına ve yetkili işlemleri yapmasına izin verir. |
 | Canlı gelen kutusu | Supabase Realtime, ilgili kurumun paneline yeniden sorgulama sinyali gönderir. Bağlantı kurulurken veya kesildiğinde panel veriyi beş saniyede bir yeniden çeker. |
 | Özel fotoğraf | Supabase Storage özel bucket. Sunucu görseli doğrular, üst verisini kaldırarak yeniden kodlar ve saklar. Yetkili görevli, kısa ömürlü imzalı bağlantıyla açar. |
@@ -75,7 +76,7 @@ supabase status
 
 Bulut ortamında `supabase/migrations/` altındaki migration’ları ortamın migration geçmişine göre sırayla uygulayın. Yeni demo ortamına `supabase/seed.sql` ile örnek kurumları ve bölgeleri yükleyin. Önceden kurulmuş demo ortamında konuma göre yönlendirme migration’ı mevcut kurum kimliklerini ve bildirimlerin önceki atamalarını korur.
 
-Bu dalın kurum paneli ve API’si üç migration’ın da uygulandığı yerel Supabase ortamında doğrulandı. Ortak Supabase’de ilk kurulum API’si çalışıyorsa, konuma dayalı yönlendirme migration’ı ile API sürümünü birlikte geçirin. Bu migration eski `place_type` alanını ve eski `submit_report` imzasını kaldırır. Mobil entegrasyonda test sunucusunun adresini `EXPO_PUBLIC_API_URL` olarak kullanmak yeterlidir.
+Bu dalın kurum paneli ve API’si bütün migration’ların uygulandığı yerel Supabase ortamında doğrulandı. Fotoğraf yüklemeyi test etmek için yerel Supabase Storage servisini de çalıştırın. Ortak Supabase’de ilk kurulum API’si çalışıyorsa, konuma dayalı yönlendirme migration’ı ile API sürümünü birlikte geçirin. Bu migration eski `place_type` alanını ve eski `submit_report` imzasını kaldırır. Mobil entegrasyon için güncel test API’sinin adresini `EXPO_PUBLIC_API_URL` olarak ayarlayın.
 
 ```bash
 cd apps/web
@@ -101,7 +102,7 @@ where routing_key = 'metropolitan'
 on conflict do nothing;
 ```
 
-Fotoğrafsız kayıt, konuma göre yönlendirme, kurum paneli, önlem işlemleri ve takip kodu sorgusu veritabanına bağlıdır. Harita ve karne uçları sözleşmeye uygun örnek veri döndürür ve `X-TwoBytes-Sample: 1` başlığını taşır. Expo ekranları, gerçek özet hesapları ve özel fotoğraf akışı takvimdeki sonraki teslimatlar arasındadır.
+Bildirim, takip, harita ve karne uçları bu dalda gerçek veriyi kullanır. Fotoğraf yükleme ve görüntüleme özel Supabase Storage üzerinden çalışır. Expo ekranları ve fiziksel telefon kabul testi Sude’nin entegrasyon aşamasındadır.
 
 ## Veri modeli ve iş kuralları
 
@@ -125,30 +126,45 @@ Fotoğrafsız kayıt, konuma göre yönlendirme, kurum paneli, önlem işlemleri
 
 **Durumlar.** Önleme bağlı olmayan bildirim **İncelemede**, açık önleme bağlı bildirim **Önlem planlandı**, tamamlanmış önleme bağlı bildirim **Tamamlandı** görünür. Bildirim ve önlem aynı kuruma ait olmalıdır. Tamamlanma zamanı sunucuda bir kez yazılır. Sonraki tamamlanma istekleri kayıtlı sonucu korur.
 
-**Yoğunluk hesabı.** İstanbul saatine göre kapanmış takvim haftasında, gönderim tarihine göre her bölgedeki benzersiz bildirimler sayılır. Demo eşiği 5 ve bantlar `5–9`, `10–19`, `20+` şeklindedir. Eşik altındaki bölge **Yetersiz veri** görünür. Yeni bildirimler bir sonraki yayımlanan özetin hesabına katılır.
+**Yoğunluk hesabı.** İstanbul saatine göre son kapanmış pazartesi–pazar haftasında, gönderim tarihine göre her bölgedeki benzersiz bildirimler sayılır. Hafta kapandıktan sonraki ilk harita isteği bölge bantlarını kaydeder. Demo eşiği 5 ve bantlar `5–9`, `10–19`, `20+` şeklindedir. Eşik altındaki bölge **Yetersiz veri** görünür. Yeni bildirimler bir sonraki yayımlanan özetin hesabına katılır.
 
-**Karne hesabı.** Son 30 günde açılan benzersiz önlemlerin kaçının bugün itibarıyla tamamlandığı hesaplanır. Oran `tamamlanan / açılan` formülüyle gösterilir. Payda sıfırsa **Bu dönemde önlem kaydı yok** görünür. Panel dönem ve zamanları İstanbul saatiyle gösterir.
+**Karne hesabı.** İstanbul saatine göre bugün dahil son 30 takvim gününde açılan benzersiz önlemlerin kaçının sorgu anında tamamlandığı hesaplanır. Oran `tamamlanan / açılan` formülüyle gösterilir. Payda sıfırsa **Bu dönemde önlem kaydı yok** görünür. Panel dönem ve zamanları İstanbul saatiyle gösterir.
 
 ### API sözleşmesi
 
 | İşlem | İstek ve yanıt |
 | --- | --- |
-| `POST /api/reports` | `submissionId`, `location.latitude`, `location.longitude`, saat dilimli ISO 8601 biçiminde `occurredAt` ve isteğe bağlı `description` alır. Başarılı yanıtta `trackingCode` ve `created` bulunur. İlk kayıt `201`, aynı gönderim tekrarı aynı kodla `200` döner. Özel fotoğraf aşamasında `multipart/form-data` eklenecek. |
+| `POST /api/reports` | Fotoğrafsız JSON veya fotoğraflı `multipart/form-data` kabul eder. Başarılı yanıtta `trackingCode` ve `created` bulunur. İlk kayıt `201`, aynı gönderim tekrarı aynı kodla `200` döner. |
 | `GET /api/map` | Yayımlanan haftanın dönemini, bölge geometrilerini ve yoğunluk bantlarını döndürür. |
 | `POST /api/track` | Gövdede `trackingCode` alır. Kurum adını, durumu, varsa önlemin başlığını, sorumlu birimini, hedef ve tamamlanma tarihlerini ve paylaşılabilir sonucunu döndürür. |
 | `GET /api/scorecard` | Kurum, dönem, tamamlanan önlem sayısı, toplam ve oran döndürür. |
 | `GET /api/institution/reports` | Kurum oturumuyla gelen kutusunu yeniden eskiye sıralar. Her sayfa en fazla 50 kayıt içerir. Sonraki sayfa, yanıttaki `nextCursor` değeri `cursor` olarak gönderilerek alınır. |
-| `GET /api/institution/reports/:id` | Kurum oturumuyla bildirim detayını ve bağlanabilecek aynı kurum önlemlerini döndürür. |
+| `GET /api/institution/reports/:id` | Kurum oturumuyla bildirim detayını, `hasPhoto` bilgisini ve bağlanabilecek aynı kurum önlemlerini döndürür. |
+| `GET /api/institution/reports/:id/photo` | Yetkili kurum oturumuna 60 saniye geçerli `signedUrl` döndürür. Fotoğrafı olmayan veya oturuma ait kurumda görünmeyen bildirim için `404` döner. |
 | `POST /api/institution/reports/:id/measure` | `action` alanıyla `open`, `link` veya `complete` işlemini yapar. Kurum üyeliği işlem sırasında veritabanında yeniden denetlenir. |
 
 Mobil yanıt tipleri `apps/web/src/lib/contract.ts`, kurum paneli tipleri `apps/web/src/lib/institution-contract.ts` içindedir.
+
+#### Sude için fotoğraflı gönderim
+
+Fotoğrafsız JSON gövdesinde `submissionId`, `location.latitude`, `location.longitude`, `occurredAt` ve isteğe bağlı `description` kullanılır. Fotoğraf seçildiğinde aynı adrese FormData gönderilir.
+
+| FormData alanı | Değer |
+| --- | --- |
+| `submissionId` | Her yeni bildirim için rastgele UUID |
+| `latitude`, `longitude` | Ondalık koordinatların metin karşılığı. İkisi üst düzey form alanıdır. |
+| `occurredAt` | Saat dilimi içeren ISO 8601 metni |
+| `description` | İsteğe bağlı metin, en çok 2000 karakter |
+| `photo` | JPEG, PNG veya WebP dosyası. En fazla bir görsel, 4 MiB ve 24 milyon piksel. |
+
+`fetch` çağrısında multipart sınırını üretebilmesi için `Content-Type` başlığını FormData’ya bırakın. Ağ tekrarında aynı `submissionId` ve aynı dosyayı kullanın. Başarı yanıtı JSON biçimiyle aynıdır. Geçersiz görsel `400`, boyut aşımı `413` döner. Sunucu fotoğrafın yönünü düzeltip üst verisini kaldırarak JPEG olarak özel depoya yazar.
 
 ### Erişim ve gizlilik
 
 - **Kamu ekranları**, bölge geometrisini, haftalık yoğunluk bandını ve kurum karnesindeki toplamları gösterir.
 - **Takip kodu**, yalnızca ilgili bildirimin paylaşılabilir durumunu ve sonucunu açar. Telefon, rastgele gönderim UUID’sini ağ tekrarlarında korur. Sunucu takip kodunu bu UUID ve sunucu sırrından türetir ve kodun özetini saklar. Geçersiz kod için genel hata döner. Kod ve gönderim kimliği istek gövdesinde taşınır. Günlüklerde yalnızca maskelenmiş gönderim kimliği yer alır.
 - **Takip sorguları** kaynak başına dakikada 30 istekle sınırlıdır. Vercel’de platformun sağladığı istemci IP’si kullanılır. Başka ortamlarda güvenilir ters vekilin tek doğrulanmış istemci IP’siyle üzerine yazdığı başlık `TRACKING_CLIENT_IP_HEADER` olarak ayarlanabilir. Bir istemci adresi belirlenemediğinde istekler ortak kotayı kullanır.
-- **Kurum kayıtları** RLS ile ilgili kurumun yetkili personeline açılır. Tam konum, olay saati, açıklama ve özel fotoğraf kurum ekranına aittir. Realtime yalnızca kuruma ait bir güncelleme sinyali taşır. İmzalı fotoğraf bağlantıları aynı kurum yetkisine tabi tutulur.
+- **Kurum kayıtları** RLS ile ilgili kurumun yetkili personeline açılır. Tam konum, olay saati, açıklama ve özel fotoğraf kurum ekranına aittir. Realtime yalnızca kuruma ait bir güncelleme sinyali taşır. Fotoğraf bağlantısı, görevli panelde fotoğrafı açtığında kurum yetkisi kontrol edilerek imzalanır.
 - **Pilot hazırlığında** kurum sahipliği, yönlendirme protokolü, veri saklama süresi ve yoğunluk haritasının gizlilik etkisi, katılımcı kurumlarla birlikte değerlendirilir. Demo için kurgu kayıtlar ve örnek görseller kullanılır.
 
 ## İş bölümü ve 20 saatlik takvim
@@ -170,8 +186,9 @@ Mobil yanıt tipleri `apps/web/src/lib/contract.ts`, kurum paneli tipleri `apps/
 - [x] Yeni kayıt yetkili kurumun panelinde sayfa yenilemeden görünür. Bağlantı kesildiğinde beş saniyelik sorgulama devreye girer. Diğer kurum hesabı kaydı açamaz veya değiştiremez.
 - [x] Görevli başlık, sorumlu birim ve hedef tarih girerek önlem açabilir, aynı kurumun mevcut önlemini bağlayabilir ve tamamlanmayı kaydedebilir. Geçerli kod üç durumu gösterir. Geçersiz kod genel hata döndürür.
 - [ ] Fiziksel telefonda, haritadan konum ve olay zamanı seçilerek fotoğraflı ve fotoğrafsız bildirimler gönderilir. Fotoğraf kaydı başarısız olduğunda arayüz güvenli tekrar deneme sunar. Fotoğrafı ilgili kurum görevlisi açabilir.
-- [ ] Kamu haritası kapanan haftanın yayımlanmış bantlarını gösterir. Eşik altı bölgeler **Yetersiz veri** görünür. Kamu ve takip yanıtlarının alanları, tablodaki paylaşılabilir sözleşmeyle sınırlıdır.
-- [ ] Bir önlemi tamamlamak karne payını bir artırır. Tekrar tamamlama sonucu ve sayacı korur. Birden çok bildirimin aynı önleme bağlanması payda hesabını değiştirmez.
+- [x] Yerel API ve Chromium testinde fotoğraf yalnızca yetkili kurum hesabıyla açılır. Aynı fotoğraflı gönderimin tekrarı tek kayda ve aynı takip koduna karşılık gelir.
+- [x] Kamu haritası kapanan haftanın yayımlanmış bantlarını gösterir. Eşik altı bölgeler **Yetersiz veri** görünür. Kamu ve takip yanıtlarının alanları, tablodaki paylaşılabilir sözleşmeyle sınırlıdır.
+- [x] Bir önlemi tamamlamak karne payını bir artırır. Tekrar tamamlama sonucu ve sayacı korur. Birden çok bildirimin aynı önleme bağlanması payda hesabını değiştirmez.
 
 ## Beş dakikalık sunum
 

@@ -1,8 +1,17 @@
-import { NextResponse } from "next/server";
+import { connection, NextResponse } from "next/server";
 import type { MapResponse } from "@/lib/contract";
-import { SAMPLE_HEADERS, sampleMap } from "@/lib/samples";
+import { apiError } from "@/lib/http";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
-// TODO(saat 10–14): public_map_snapshots tablosundan son yayımlanan haftayı oku.
-export function GET() {
-  return NextResponse.json<MapResponse>(sampleMap, { headers: SAMPLE_HEADERS });
+export async function GET() {
+  await connection();
+
+  const { data, error } = await supabaseAdmin().rpc("read_weekly_map");
+
+  if (error || !data) {
+    console.error("read_weekly_map failed", { code: error?.code });
+    return apiError(503, "server_error", "Haftalık harita şu anda kullanılamıyor.");
+  }
+
+  return NextResponse.json(data as MapResponse, { headers: { "Cache-Control": "no-store" } });
 }

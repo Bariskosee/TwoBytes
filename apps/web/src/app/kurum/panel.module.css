@@ -426,6 +426,26 @@
   white-space: pre-wrap;
 }
 
+.reportPhoto {
+  display: grid;
+  justify-items: start;
+  gap: .625rem;
+  min-inline-size: 0;
+}
+
+.reportPhoto > div {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.reportPhoto img {
+  display: block;
+  max-inline-size: 100%;
+  max-block-size: min(32rem, 65vh);
+  border: 1px solid var(--panel-border);
+  border-radius: .625rem;
+}
+
 .measureModes {
   display: flex;
   flex-wrap: wrap;

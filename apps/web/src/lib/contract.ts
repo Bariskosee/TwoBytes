@@ -23,7 +23,7 @@ export interface ApiError {
 
 // POST /api/reports ---------------------------------------------------------
 
-/** JSON gövde. Fotoğraflı gönderimde aynı alanlar multipart/form-data ile gelir. */
+/** Fotoğrafsız bildirim için JSON gövdesi. */
 export interface CreateReportRequest {
   /** Telefonun ürettiği rastgele UUID. Ağ tekrarlarında aynı değer gönderilir. */
   submissionId: string;
@@ -31,6 +31,16 @@ export interface CreateReportRequest {
   /** ISO 8601, saat dilimi bilgisiyle. */
   occurredAt: string;
   description?: string;
+}
+
+/** multipart/form-data alanları. Fotoğraf bölümü tek bir dosya içerir. */
+export interface CreateReportMultipartFields {
+  submissionId: string;
+  latitude: string;
+  longitude: string;
+  occurredAt: string;
+  description?: string;
+  photo?: Blob;
 }
 
 export interface CreateReportResponse {

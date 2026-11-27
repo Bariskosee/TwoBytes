@@ -3,6 +3,7 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import type { InstitutionMeasureAction, InstitutionReportResponse } from "@/lib/institution-contract";
 import { formatDate, formatDateTime, statusLabels } from "./report-labels";
+import { ReportPhoto } from "./report-photo";
 import {
   institutionRequest,
   InstitutionRequestError,
@@ -149,6 +150,7 @@ export function ReportDetail({ id, revision, onChange, onClose, onSessionExpired
                 <p>{report.description}</p>
               </div>
             )}
+            {report.hasPhoto && <ReportPhoto path={`${path}/photo`} onSessionExpired={onSessionExpired} />}
           </div>
           <div className={styles.detailSection}>
             <h3>Önlem</h3>

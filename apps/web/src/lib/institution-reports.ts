@@ -44,6 +44,7 @@ interface DetailRow extends InboxRow {
   latitude: number;
   longitude: number;
   description: string | null;
+  has_photo: boolean;
   measure_title: string;
   measure_responsible_unit: string;
   measure_target_date: string;
@@ -58,7 +59,7 @@ export function reportNotFound() {
 export async function readInstitutionReport(client: SupabaseClient, id: string) {
   const { data: row, error } = await client
     .from("institution_reports")
-    .select(`${INBOX_COLUMNS},latitude,longitude,description,measure_title,measure_responsible_unit,measure_target_date,measure_opened_at,measure_outcome_summary`)
+    .select(`${INBOX_COLUMNS},latitude,longitude,description,has_photo,measure_title,measure_responsible_unit,measure_target_date,measure_opened_at,measure_outcome_summary`)
     .eq("id", id)
     .maybeSingle()
     .overrideTypes<DetailRow, { merge: false }>();
@@ -84,6 +85,7 @@ export async function readInstitutionReport(client: SupabaseClient, id: string) 
       ...reportSummary(row),
       location: { latitude: row.latitude, longitude: row.longitude },
       description: row.description,
+      hasPhoto: row.has_photo,
       measure: row.measure_id ? {
         id: row.measure_id,
         title: row.measure_title,

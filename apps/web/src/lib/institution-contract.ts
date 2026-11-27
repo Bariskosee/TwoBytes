@@ -23,6 +23,7 @@ export interface InstitutionMeasure {
 export interface InstitutionReportDetail extends InstitutionReportSummary {
   location: { latitude: number; longitude: number };
   description: string | null;
+  hasPhoto: boolean;
   measure: InstitutionMeasure | null;
 }
 
@@ -34,6 +35,10 @@ export interface InstitutionInboxResponse {
 export interface InstitutionReportResponse {
   report: InstitutionReportDetail;
   availableMeasures: InstitutionMeasure[];
+}
+
+export interface InstitutionReportPhotoResponse {
+  signedUrl: string;
 }
 
 export type InstitutionMeasureAction =
