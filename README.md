@@ -17,6 +17,7 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli IP adresiyle açılınca "Oturum denetleniyor…" yazısında kalıyordu. Next.js 16 geliştirme sunucusu `localhost` dışındaki adreslerden gelen geliştirme kaynaklarını engelliyordu. `next.config.ts` içinde `allowedDevOrigins: ["172.20.10.*"]` eklendi. Hotspot başka bir aralık verirse bu listeye eklenmeli.
 - **2026-11-28, `baris/report-inbox-measures`.** `.env.example` içindeki `SUPABASE_DB_URL` örneği, projenin gerçek session pooler adresine (`aws-1-eu-central-1.pooler.supabase.com`) düzeltildi.
 - **2026-11-28, `baris/report-inbox-measures`.** `supabase/migrate.sh` eklendi. Yeni migration'ları bulut ve yerel Supabase veritabanlarına tek komutla, eksik olan hedefe uygular. Buluta uygulamak için `brew install libpq` ve `.env.local` içinde `SUPABASE_DB_URL` gerekir. 3187'nin yerel veritabanındaki eksik harita, karne ve fotoğraf migration'ları uygulandı; o kurulumda Storage servisi çalışmadığı için fotoğraflı test 3000 veya 3190'da yapılmalı.
 - **2026-11-28, `baris/report-inbox-measures`.** Bulutta iki kurum için test görevlisi hesabı açıldı ve kurumlarına bağlandı. Giriş bilgileri Barış'ta. Her hesap yalnızca kendi kurumunun bildirimlerini ve fotoğraflarını açabiliyor, diğer kurumun kaydı `404` dönüyor. Sude'nin ortak sunucuya (`http://172.20.10.4:3000`) gönderdiği bildirim artık ilgili kurumun `/kurum` gelen kutusunda görünür.
