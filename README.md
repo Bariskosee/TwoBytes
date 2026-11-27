@@ -17,6 +17,7 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `baris/report-inbox-measures`.** `supabase/migrate.sh` eklendi. Yeni migration'ları bulut ve yerel Supabase veritabanlarına tek komutla, eksik olan hedefe uygular. Buluta uygulamak için `brew install libpq` ve `.env.local` içinde `SUPABASE_DB_URL` gerekir. 3187'nin yerel veritabanındaki eksik harita, karne ve fotoğraf migration'ları uygulandı; o kurulumda Storage servisi çalışmadığı için fotoğraflı test 3000 veya 3190'da yapılmalı.
 - **2026-11-28, `baris/report-inbox-measures`.** Bulutta iki kurum için test görevlisi hesabı açıldı ve kurumlarına bağlandı. Giriş bilgileri Barış'ta. Her hesap yalnızca kendi kurumunun bildirimlerini ve fotoğraflarını açabiliyor, diğer kurumun kaydı `404` dönüyor. Sude'nin ortak sunucuya (`http://172.20.10.4:3000`) gönderdiği bildirim artık ilgili kurumun `/kurum` gelen kutusunda görünür.
 - **2026-11-28, `baris/report-inbox-measures`.** Ortak bulut Supabase (`hatguven`) bu dalın şemasına geçirildi ve beş migration'ın geçmişi depodaki dosya adlarıyla eşlendi. Ortak API `http://172.20.10.4:3000` adresinde bu dalın koduyla çalışıyor. Bulutta JSON ve fotoğraflı bildirim, tekrar gönderim, takip, harita ve karne doğrulandı. Sude için: `placeType` alanını göndermeyin. FormData'da bilinmeyen alan `400` döndürür.
 - **2026-11-28, `baris/report-inbox-measures`.** Fotoğraflı bildirim için FormData eklendi. Kurum görevlisi özel fotoğrafı panelden açabiliyor. Harita ve karne veritabanından hesaplanıyor. Mobil yanıt alanları aynı, örnek yanıt başlığı kaldırıldı.
@@ -75,6 +76,22 @@ supabase init
 supabase start
 supabase status
 ```
+
+#### Migration uygulama
+
+Yeni bir migration eklendiğinde `supabase/migrate.sh` onu bulut veritabanına ve çalışan bütün yerel Supabase veritabanlarına aynı anda uygular. Betik önce her hedefte eksik olan migration'ları listeler, sonra onay ister. Her migration, geçmiş kaydıyla birlikte tek transaction içinde çalışır. Hata olursa o migration geri alınır ve o hedefte sonrakilere geçilmez.
+
+```bash
+brew install libpq                     # psql, bir kez
+supabase/migrate.sh --dry-run          # hangi hedefte neyin eksik olduğunu gösterir
+supabase/migrate.sh                    # onaydan sonra yerel + bulut
+supabase/migrate.sh --local            # yalnızca yerel veritabanları
+supabase/migrate.sh --cloud            # yalnızca bulut
+```
+
+- **Yerel hedefler:** Docker'da çalışan bütün `supabase_db_twobytes*` konteynerleri otomatik bulunur.
+- **Bulut hedefi:** `SUPABASE_DB_URL` gerekir. Supabase Dashboard > Connect > Session pooler adresini, şifresiyle birlikte `apps/web/.env.local` dosyasına `SUPABASE_DB_URL=...` olarak ekleyin. Bu dosya git'e girmez.
+- **DROP veya RENAME uyarısı:** Migration bunlardan birini içeriyorsa betik uyarır. O veritabanına bağlı ve eski kodla çalışan sunucular bozulabilir; önce kodu güncelleyin.
 
 Bulut ortamında `supabase/migrations/` altındaki migration’ları ortamın migration geçmişine göre sırayla uygulayın. Yeni demo ortamına `supabase/seed.sql` ile örnek kurumları ve bölgeleri yükleyin. Önceden kurulmuş demo ortamında konuma göre yönlendirme migration’ı mevcut kurum kimliklerini ve bildirimlerin önceki atamalarını korur.
 
