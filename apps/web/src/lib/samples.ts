@@ -1,17 +1,17 @@
 // Örnek API yanıtları. Mobil ekranlar gerçek hesaplar gelene kadar bunlarla
-// geliştirilir. Yanıtlarda `X-HatGuven-Sample: 1` başlığı bulunur.
+// geliştirilir. Yanıtlarda `X-TwoBytes-Sample: 1` başlığı bulunur.
 // Gerçek harita özeti ve karne hesapları saat 10–14 arasında eklenecek.
 
 import type { MapResponse, ScorecardResponse } from "./contract";
 
-export const SAMPLE_HEADERS = { "X-HatGuven-Sample": "1" };
+export const SAMPLE_HEADERS = { "X-TwoBytes-Sample": "1" };
 
 export const sampleMap: MapResponse = {
   period: { start: "2026-11-16", end: "2026-11-22" },
   areas: [
     {
       id: "iskele",
-      name: "İskele ve Çarşı",
+      name: "Çarşı ve çevresi",
       boundary: {
         type: "Polygon",
         coordinates: [[[29.02, 40.988], [29.03, 40.988], [29.03, 40.996], [29.02, 40.996], [29.02, 40.988]]],
@@ -44,14 +44,14 @@ export const sampleScorecard: ScorecardResponse = {
   institutions: [
     {
       institutionId: "22222222-2222-4222-8222-222222222222",
-      institutionName: "Örnek Ulaşım İşletmesi Yolcu Güvenliği Birimi",
+      institutionName: "Örnek Büyükşehir Belediyesi",
       completedMeasures: 1,
       totalMeasures: 2,
       completionRate: 0.5,
     },
     {
       institutionId: "11111111-1111-4111-8111-111111111111",
-      institutionName: "Örnek İlçe Belediyesi Kadın Güvenliği Birimi",
+      institutionName: "Örnek İlçe Belediyesi",
       completedMeasures: 0,
       totalMeasures: 0,
       completionRate: null,

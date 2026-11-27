@@ -1,10 +1,4 @@
-import type { PlaceType, ReportStatus } from "@/lib/contract";
-
-export const placeLabels: Record<PlaceType, string> = {
-  transit_stop: "Durak",
-  street: "Sokak",
-  other: "Diğer",
-};
+import type { ReportStatus } from "@/lib/contract";
 
 export const statusLabels: Record<ReportStatus, string> = {
   in_review: "İncelemede",

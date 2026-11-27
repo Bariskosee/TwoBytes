@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import type { InstitutionInboxResponse } from "@/lib/institution-contract";
 import { ReportDetail } from "./report-detail";
-import { formatDateTime, placeLabels, statusLabels } from "./report-labels";
+import { formatDateTime, statusLabels } from "./report-labels";
 import { useInstitutionResource } from "./requests";
 import styles from "./panel.module.css";
 
@@ -130,7 +130,7 @@ function PanelHeader({ children }: { children?: React.ReactNode }) {
     <header className={styles.header}>
       <div className={styles.headerInner}>
         <div className={styles.brand}>
-          <strong>HatGüven</strong>
+          <strong>Güvenlik Haritası</strong>
           <span>Kurum paneli</span>
         </div>
         {children}
@@ -157,7 +157,9 @@ function useInboxUpdates(client: SupabaseClient) {
       }, 100);
     }
 
-    const channel = client.channel(`kurum-gelen-kutusu-${++nextInboxChannel}`)
+    const channel = client.channel(`kurum-gelen-kutusu-${++nextInboxChannel}`, {
+      config: { postgres_changes_options: { wait: true } },
+    })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "report_inbox_events" }, queueRefresh)
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "report_inbox_events" }, queueRefresh)
       .subscribe((status) => {
@@ -296,7 +298,7 @@ function Inbox({
                       }}
                     >
                       <span className={styles.rowTitle}>
-                        <strong>{placeLabels[report.placeType]} bildirimi</strong>
+                        <strong>Güvenlik bildirimi</strong>
                         <span className={styles.status} data-status={report.status}>
                           {statusLabels[report.status]}
                         </span>

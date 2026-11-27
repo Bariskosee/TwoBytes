@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { PlaceType, ReportStatus } from "@/lib/contract";
+import type { ReportStatus } from "@/lib/contract";
 import { apiError } from "@/lib/http";
 import type {
   InstitutionMeasure,
@@ -11,14 +11,13 @@ import type {
 export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const INBOX_COLUMNS =
-  "id,institution_id,institution_name,area_id,place_type,occurred_at,submitted_at,measure_id,measure_completed_at";
+  "id,institution_id,institution_name,area_id,occurred_at,submitted_at,measure_id,measure_completed_at";
 
 export interface InboxRow {
   id: string;
   institution_id: string;
   institution_name: string;
   area_id: string | null;
-  place_type: PlaceType;
   occurred_at: string;
   submitted_at: string;
   measure_id: string | null;
@@ -35,7 +34,6 @@ export function reportSummary(row: InboxRow): InstitutionReportSummary {
     institutionId: row.institution_id,
     institutionName: row.institution_name,
     areaId: row.area_id,
-    placeType: row.place_type,
     occurredAt: row.occurred_at,
     submittedAt: row.submitted_at,
     status,

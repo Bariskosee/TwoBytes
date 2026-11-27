@@ -1,10 +1,9 @@
-import type { PlaceType, ReportStatus } from "./contract";
+import type { ReportStatus } from "./contract";
 
 export interface InstitutionReportSummary {
   id: string;
   institutionId: string;
   institutionName: string;
-  placeType: PlaceType;
   occurredAt: string;
   submittedAt: string;
   areaId: string | null;

@@ -1,4 +1,4 @@
-# TwoBytes | HatGüven
+# TwoBytes | Güvenlik Haritası
 
 README.md, MVP şartnamesi ve ekibin ortak durum takibidir. Uygulama planı, API sözleşmesi ve iş kuralları oradadır.
 

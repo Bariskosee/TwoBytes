@@ -1,8 +1,5 @@
-// HatGüven API sözleşmesi. Mobil uygulama bu tipleri birebir kullanır.
+// TwoBytes API sözleşmesi. Mobil uygulama bu tipleri birebir kullanır.
 // Alan adları değişirse README'deki API tablosunu da güncelleyin.
-
-export const PLACE_TYPES = ["transit_stop", "street", "other"] as const;
-export type PlaceType = (typeof PLACE_TYPES)[number];
 
 export type ReportStatus = "in_review" | "measure_planned" | "completed";
 
@@ -33,7 +30,6 @@ export interface CreateReportRequest {
   location: { latitude: number; longitude: number };
   /** ISO 8601, saat dilimi bilgisiyle. */
   occurredAt: string;
-  placeType: PlaceType;
   description?: string;
 }
 

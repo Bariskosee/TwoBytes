@@ -1,10 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import {
-  PLACE_TYPES,
-  type CreateReportRequest,
-  type CreateReportResponse,
-  type PlaceType,
-} from "@/lib/contract";
+import type { CreateReportRequest, CreateReportResponse } from "@/lib/contract";
 import { apiError } from "@/lib/http";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { deriveTrackingCode, hashTrackingCode, mask } from "@/lib/tracking";
@@ -45,10 +40,6 @@ function parse(body: unknown): Parsed {
     return { ok: false, message: "occurredAt must be a valid time within the last year." };
   }
 
-  if (typeof b.placeType !== "string" || !PLACE_TYPES.includes(b.placeType as PlaceType)) {
-    return { ok: false, message: `placeType must be one of ${PLACE_TYPES.join(", ")}.` };
-  }
-
   if (b.description !== undefined && b.description !== null) {
     if (typeof b.description !== "string" || b.description.length > 2000 || b.description.includes("\0")) {
       return { ok: false, message: "description must be a string of at most 2000 characters." };
@@ -61,7 +52,6 @@ function parse(body: unknown): Parsed {
       submissionId: b.submissionId.toLowerCase(),
       location: { latitude: lat, longitude: lng },
       occurredAt: new Date(occurred).toISOString(),
-      placeType: b.placeType as PlaceType,
       description: (b.description as string | undefined) ?? undefined,
     },
   };
@@ -92,7 +82,6 @@ export async function POST(request: NextRequest) {
       p_code_hash: hashTrackingCode(trackingCode),
       p_lng: input.location.longitude,
       p_lat: input.location.latitude,
-      p_place_type: input.placeType,
       p_occurred_at: input.occurredAt,
       p_description: input.description ?? null,
       p_photo_key: null,

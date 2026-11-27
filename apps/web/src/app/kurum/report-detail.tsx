@@ -2,7 +2,7 @@
 
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import type { InstitutionMeasureAction, InstitutionReportResponse } from "@/lib/institution-contract";
-import { formatDate, formatDateTime, placeLabels, statusLabels } from "./report-labels";
+import { formatDate, formatDateTime, statusLabels } from "./report-labels";
 import {
   institutionRequest,
   InstitutionRequestError,
@@ -120,7 +120,7 @@ export function ReportDetail({ id, revision, onChange, onClose, onSessionExpired
         <>
           <div className={styles.detailSection}>
             <div className={styles.detailTitle}>
-              <h3>{placeLabels[report.placeType]} bildirimi</h3>
+              <h3>Güvenlik bildirimi</h3>
               <span className={styles.status} data-status={report.status}>{statusLabels[report.status]}</span>
             </div>
             <p className={styles.muted}>{report.institutionName}</p>
@@ -249,9 +249,9 @@ export function ReportDetail({ id, revision, onChange, onClose, onSessionExpired
                 ) : data.availableMeasures.length > 0 ? (
                   <form className={styles.form} onSubmit={(event) => submitMeasure(event, "link")}>
                     <fieldset disabled={saving}>
-                      <label>
-                        Bağlanacak önlem
-                        <select name="measureId" defaultValue="" required>
+                      <div className={styles.field}>
+                        <label htmlFor="measure-picker">Bağlanacak önlem</label>
+                        <select id="measure-picker" name="measureId" defaultValue="" required>
                           <option value="" disabled>Önlem seçin</option>
                           {data.availableMeasures.map((option) => (
                             <option key={option.id} value={option.id}>
@@ -259,7 +259,7 @@ export function ReportDetail({ id, revision, onChange, onClose, onSessionExpired
                             </option>
                           ))}
                         </select>
-                      </label>
+                      </div>
                       <button type="submit" className={styles.primary}>
                         {saving ? "Kaydediliyor…" : "Önleme bağla"}
                       </button>

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# İlk test kaydı: İskele bölgesinde fotoğrafsız bir durak bildirimi gönderir,
+# İlk test kaydı: Çarşı ve çevresinde fotoğrafsız bir güvenlik bildirimi gönderir,
 # aynı gönderimi tekrar dener ve aynı takip kodunun döndüğünü kontrol eder.
 # Kullanım: ./scripts/smoke-report.sh [API_URL]   (varsayılan http://localhost:3000)
 set -euo pipefail
@@ -9,7 +9,7 @@ SUBMISSION_ID="$(uuidgen | tr '[:upper:]' '[:lower:]')"
 OCCURRED_AT="$(date -u -v-1H +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -d '-1 hour' +%Y-%m-%dT%H:%M:%SZ)"
 
 BODY=$(cat <<EOF
-{"submissionId":"$SUBMISSION_ID","location":{"latitude":40.992,"longitude":29.025},"occurredAt":"$OCCURRED_AT","placeType":"transit_stop","description":"Kurgu test kaydı: durakta rahatsız edici takip."}
+{"submissionId":"$SUBMISSION_ID","location":{"latitude":40.992,"longitude":29.025},"occurredAt":"$OCCURRED_AT","description":"Kurgu test kaydı: meydanda yetersiz aydınlatma."}
 EOF
 )
 
