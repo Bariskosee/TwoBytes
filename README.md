@@ -8,15 +8,16 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 
 | Alan | Durum | Sahibi |
 | --- | --- | --- |
-| Supabase şeması, kurum yetkileri ve iki demo kurum | ✅ Yerelde doğrulandı | Barış |
-| Fotoğrafsız bildirim, konuma göre yönlendirme ve ağ tekrarı | ✅ Yerelde doğrulandı | Barış |
-| Kurum girişi, canlı gelen kutusu, önlemler ve gerçek takip sorgusu | ✅ Yerelde doğrulandı | Barış |
-| Özel fotoğraf yükleme ve yetkili kurum görüntüleme | ✅ Yerelde doğrulandı | Barış |
-| Haftalık yoğunluk haritası ve gerçek kurum karnesi | ✅ Yerelde doğrulandı | Barış |
+| Supabase şeması, kurum yetkileri ve iki demo kurum | ✅ Bulutta doğrulandı | Barış |
+| Fotoğrafsız bildirim, konuma göre yönlendirme ve ağ tekrarı | ✅ Bulutta doğrulandı | Barış |
+| Kurum girişi, canlı gelen kutusu, önlemler ve gerçek takip sorgusu | ✅ Yerelde doğrulandı. Bulutta görevli hesabı yok | Barış |
+| Özel fotoğraf yükleme ve yetkili kurum görüntüleme | ✅ Bulutta doğrulandı | Barış |
+| Haftalık yoğunluk haritası ve gerçek kurum karnesi | ✅ Bulutta doğrulandı | Barış |
 | Expo ve mobil ekranlar | 🟡 Geliştirme sürüyor | Sude |
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `baris/report-inbox-measures`.** Ortak bulut Supabase (`hatguven`) bu dalın şemasına geçirildi ve beş migration'ın geçmişi depodaki dosya adlarıyla eşlendi. Ortak API `http://172.20.10.4:3000` adresinde bu dalın koduyla çalışıyor. Bulutta JSON ve fotoğraflı bildirim, tekrar gönderim, takip, harita ve karne doğrulandı. Sude için: `placeType` alanını göndermeyin. FormData'da bilinmeyen alan `400` döndürür. Bulutta henüz kurum görevlisi hesabı yok.
 - **2026-11-28, `baris/report-inbox-measures`.** Fotoğraflı bildirim için FormData eklendi. Kurum görevlisi özel fotoğrafı panelden açabiliyor. Harita ve karne veritabanından hesaplanıyor. Mobil yanıt alanları aynı, örnek yanıt başlığı kaldırıldı.
 - **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli ve gerçek takip API’si eklendi. Bildirim konuma göre yönlenir ve mobil gövdeden `placeType` kaldırıldı. Takipte gönderimin döndürdüğü kod kullanılır.
 - **2026-11-27, `baris/web-supabase-setup`.** Next.js API, ilk Supabase şeması ve iki demo kurum hazırlandı. Bildirim kaydı ve aynı gönderimin tekrarı doğrulandı. Harita, takip ve karne için ilk örnek yanıtlar eklendi.
@@ -76,7 +77,7 @@ supabase status
 
 Bulut ortamında `supabase/migrations/` altındaki migration’ları ortamın migration geçmişine göre sırayla uygulayın. Yeni demo ortamına `supabase/seed.sql` ile örnek kurumları ve bölgeleri yükleyin. Önceden kurulmuş demo ortamında konuma göre yönlendirme migration’ı mevcut kurum kimliklerini ve bildirimlerin önceki atamalarını korur.
 
-Bu dalın kurum paneli ve API’si bütün migration’ların uygulandığı yerel Supabase ortamında doğrulandı. Fotoğraf yüklemeyi test etmek için yerel Supabase Storage servisini de çalıştırın. Ortak Supabase’de ilk kurulum API’si çalışıyorsa, konuma dayalı yönlendirme migration’ı ile API sürümünü birlikte geçirin. Bu migration eski `place_type` alanını ve eski `submit_report` imzasını kaldırır. Mobil entegrasyon için güncel test API’sinin adresini `EXPO_PUBLIC_API_URL` olarak ayarlayın.
+Ortak bulut Supabase (`hatguven`) bütün migration'ların uygulandığı güncel şemadadır. Bu dalın kurum paneli ve API'si hem yerel Supabase'de hem bulutta doğrulandı. Fotoğraf yüklemeyi yerelde test etmek için yerel Supabase Storage servisini de çalıştırın. Ortak API'yi çalıştıran her bilgisayar bu dalın koduna geçmelidir, çünkü eski `place_type` alanı ve eski `submit_report` imzası kaldırıldı. Mobil entegrasyon için güncel test API’sinin adresini `EXPO_PUBLIC_API_URL` olarak ayarlayın.
 
 ```bash
 cd apps/web
