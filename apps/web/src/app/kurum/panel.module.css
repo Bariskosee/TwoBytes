@@ -15,7 +15,6 @@
   min-inline-size: 0;
   background: var(--panel-background);
   color: var(--panel-ink);
-  font-family: var(--font-geist-sans, system-ui), sans-serif;
   color-scheme: light;
 }
 
@@ -283,9 +282,9 @@
   gap: .375rem;
   width: 100%;
   min-height: 2.75rem;
-  padding: .875rem 1rem;
+  padding: .8125rem .9375rem;
   text-align: start;
-  border-inline-start: 4px solid transparent;
+  border: 1px solid transparent;
 }
 
 .reportList li:first-child .reportRow {
@@ -303,7 +302,7 @@
 }
 
 .reportRow[aria-current="true"] {
-  border-inline-start-color: var(--panel-primary);
+  border-color: var(--panel-primary);
   background: var(--panel-selected);
 }
 
