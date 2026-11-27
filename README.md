@@ -14,11 +14,12 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 | Özel fotoğraf yükleme ve yetkili kurum görüntüleme | ✅ Bulutta doğrulandı | Barış |
 | Haftalık yoğunluk haritası ve gerçek kurum karnesi | ✅ Bulutta doğrulandı | Barış |
 | Kurumlar arası yetki kontrolü | ✅ 50 pgTAP testi ve iki kurumla HTTP testi geçti | Barış |
-| Sunum verisi ve 1/2 → 2/2 provası | 🟡 Yerelde doğrulandı. Bulut ortamı sunum haftasında `reset-demo.mjs` ve `demo.sql` ile hazırlanacak | Barış |
+| Sunum verisi ve 1/2 → 2/2 provası | ✅ Bulut sunum ortamı (`:3000`) hazır, prova bekleniyor | Barış |
 | Expo ve mobil ekranlar | 🟡 Geliştirme sürüyor | Sude |
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `baris/demo-acceptance`.** Ortak sunum ortamı (`:3000`, bulut) hazırlandı. Eski test bildirimleri silindi. Harita Çarşı ve çevresi **10–19**, Moda **5–9**, Fenerbahçe **Yetersiz veri** gösteriyor. Büyükşehir karnesi **1/2**. Açık önlem: **Çarşı Meydanı aydınlatmasının iyileştirilmesi**. Sude için: provada bildirimi Çarşı ve çevresinden gönderin. Provadan sonra ortam aynı komutlarla 1/2 başlangıcına döndürülecek.
 - **2026-11-28, `baris/demo-acceptance`.** Ortak sunum ortamını temizleyen `apps/web/scripts/reset-demo.mjs` eklendi; `demo.sql` artık bulutta da uygulanabiliyor. HTTP yetki testi `GET /api/institution/me` ucunu da kapsıyor. pgTAP testleri bulutta da geçti (50/50, işlem geri alınarak). Dal, panel yenilemesinin üstüne taşındı.
 - **2026-11-28, `baris/demo-acceptance`.** Kurumlar arası yetki regresyon testleri ve isteğe bağlı `supabase/demo.sql` eklendi. `:3191` ortamında erişim ayrımı, haftalık harita bantları ve karnenin 1/2 → 2/2 provası doğrulandı. Sude’nin ortak sunum API adresi `:3000`.
 - **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli yenilendi. Başlıkta oturumdaki kurumun adı, **Büyükşehir** veya **İlçe** rozeti ve görevlinin e-postası görünüyor. İki kurumun ayrı renk teması var ve tarayıcı sekmesinde kurum adı yazıyor. Gelen kutusunda durum sayaçları ve filtresi var. Satırlarda bölge adı, olay ve bildirim zamanı görünüyor. Canlı gelen bildirim **Yeni** etiketi alıyor. Detayda bölge adı ve **Haritada aç** bağlantısı var. Yeni uç: `GET /api/institution/me`.
