@@ -53,7 +53,25 @@ TwoBytes/
     └── seed.sql      # Kurgu kurumlar, bölgeler, bildirimler ve önlemler
 ```
 
-Uygulamalar ayağa kalktığında bu bölüme gerçek kurulum ve çalıştırma komutlarını ekleyin. Mobilin API adresini `EXPO_PUBLIC_API_URL` ile yapılandırın. Fiziksel telefonda yerel demo için telefonun erişebildiği bilgisayar adresini kullanın. Örnek ortam dosyasında yer tutucular, sunucu ortamında gerçek bağlantı ve servis anahtarları bulunur.
+### Kurulum ve çalıştırma
+
+**Supabase.** Bulut projesi `hatguven` (eu-central-1). Şema `supabase/migrations/`, demo kurumları ve bölgeleri `supabase/seed.sql` içindedir. İkisi de projeye uygulanmıştır.
+
+**Web ve API** (`apps/web`, Next.js 16):
+
+```bash
+cd apps/web
+npm install
+cp .env.example .env.local   # Supabase URL, anahtarlar ve TRACKING_CODE_SECRET
+npm run dev -- -H 0.0.0.0    # telefondan erişim için tüm arayüzlerde dinler
+./scripts/smoke-report.sh    # ilk test kaydı ve tekrar deneme kontrolü
+```
+
+`SUPABASE_SECRET_KEY` yalnızca sunucu ortamında bulunur. Mobil uygulamaya konmaz.
+
+**API durumu.** `POST /api/reports` gerçek kayıt ve kurum yönlendirmesi yapar. `GET /api/map`, `POST /api/track` ve `GET /api/scorecard` şimdilik sözleşmeye uygun örnek yanıt döndürür ve `X-HatGuven-Sample: 1` başlığını taşır. Örnek takip modunda geçerli biçimdeki bir kod `0` ile bitiyorsa tamamlanmış, bitmiyorsa planlanmış önlem döner. Ortak tipler `apps/web/src/lib/contract.ts` içindedir.
+
+Uygulamalar ayağa kalktıkça bu bölüme diğer kurulum ve çalıştırma komutlarını ekleyin. Mobilin API adresini `EXPO_PUBLIC_API_URL` ile yapılandırın. Fiziksel telefonda yerel demo için telefonun erişebildiği bilgisayar adresini kullanın. Örnek ortam dosyasında yer tutucular, sunucu ortamında gerçek bağlantı ve servis anahtarları bulunur.
 
 ## Veri modeli ve iş kuralları
 
