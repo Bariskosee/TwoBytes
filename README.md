@@ -4,6 +4,23 @@ Kadınlar, kamusal alanda yaşadıkları tacizi veya güvenlik sorununu mobil uy
 
 Bu depo, iki kişilik ekibin **20 saatte geliştireceği prototipin uygulama planını** içerir. Demo bir pilot ilçe, üç harita bölgesi, iki örnek kurum ve kurgu kayıtlarla çalışır. Sunumdaki kamu iş birliği, gerçek pilot için önerilen işletim modelidir. Aydınlatma, kamera ve benzeri önlemlerin içeriğini kurum belirler ve saha çalışmasını kurum yürütür.
 
+## İlerleme
+
+Her commit ve push bu bölümü günceller. En yeni kayıt en üstte.
+
+| Alan | Durum | Sahibi |
+| --- | --- | --- |
+| Supabase projesi, şema, RLS ve demo verisi | ✅ Tamam | Barış |
+| `POST /api/reports`: kayıt, kurum yönlendirmesi, takip kodu, tekrar deneme | ✅ Tamam | Barış |
+| `GET /api/map`, `POST /api/track`, `GET /api/scorecard` | 🟡 Örnek yanıt | Barış |
+| Kurum girişi, canlı gelen kutusu, önlem işlemleri | ⬜ Sırada (saat 2–10) | Barış |
+| Özel fotoğraf akışı, haftalık harita özeti, karne hesabı | ⬜ Bekliyor (saat 10–14) | Barış |
+| Expo kurulumu ve mobil ekranlar | ⬜ Başlıyor | Sude |
+
+### Değişiklik günlüğü
+
+- **2026-11-27, `baris/web-supabase-setup`:** Next.js API ve Supabase şeması kuruldu. Bildirim kaydı uçtan uca çalışıyor: İskele'deki durak bildirimi ulaşım kurumuna yönlendi, tekrar gönderim aynı takip kodunu döndürdü. Diğer üç uç, mobil geliştirme için sözleşmeye uygun örnek yanıt veriyor. Ortak tipler: `apps/web/src/lib/contract.ts`.
+
 ## Ürün kapsamı
 
 | Özellik | MVP davranışı |
