@@ -14,11 +14,12 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 | `GET /api/map` ve `GET /api/scorecard` | 🟡 Örnek yanıt | Barış |
 | Özel fotoğraf, haftalık harita özeti ve karne hesabı | ⬜ Sırada | Barış |
 | Expo iskeleti, ekran taslakları ve telefondan ilk API denemesi | 🟡 iPhone'da Expo Go ile çalışıyor. Takip sorgusu, tekrar gönderim ve panel kontrolü bekliyor | Sude |
-| Bildir ekranı: haritadan konum, tarih ve saat seçimi, açıklama ve gönderim | 🟡 Kodlandı, iPhone'da doğrulanacak | Sude |
-| Harita ekranında bölge yoğunluk katmanı ve bildirimde fotoğraf | ⬜ Sırada | Sude |
+| Bildir ekranı: haritadan konum, tarih ve saat seçimi, açıklama, isteğe bağlı fotoğraf ve gönderim | 🟡 Kodlandı, iPhone'da doğrulanacak. Fotoğraflı gönderim yalnızca Storage açık API'de denenebilir | Sude |
+| Harita ekranında bölge yoğunluk katmanı ve lejant | 🟡 Kodlandı, iPhone'da doğrulanacak | Sude |
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `sude/mobile-setup`.** Harita sekmesi artık bölgeleri haritada renkli alanlar olarak gösterir ve lejantta dönem ile **Bildirim yoğunluğu** etiketi bulunur. Bölgeye dokunmak onu seçer. **Yetersiz veri** bölgeleri kesik çizgiyle gösterilir ve liste altta durur. Bildir sekmesine isteğe bağlı tek fotoğraf eklendi. Fotoğraf kütüphaneden seçilir, 2048 piksele küçültülür ve JPEG'e çevrilir. Fotoğraflı gönderim `POST /api/reports` adresine `multipart/form-data` ile gider. Alanlar `submissionId`, `latitude`, `longitude`, `occurredAt`, `description` ve `photo`. Karne sekmesine doluluk çubuğu eklendi. Yeni mobil paketler: `expo-image-picker` ve `expo-image-manipulator`. Barış için: API veya `contract.ts` değişikliği yok. Fotoğraflı gönderim `:3187` adresinde Storage olmadığı için HTTP 503 döndürür. Fotoğraf testi `:3000` adresinde yapılmalı.
 - **2026-11-28, `sude/mobile-setup`.** Bildir ekranından fotoğrafsız bildirim gönderilebiliyor. Kullanıcı haritaya dokunarak yeri seçer, işaretçi son dokunulan yere taşınır ve konum izni istenmez. Olay tarihi ve saati İstanbul saatiyle seçilir. Gelecekteki veya bir yıldan eski zaman için alanın altında neden gösterilir. Gönderim `POST /api/reports` JSON gövdesini kullanır ve başarıda takip kodunu gösterir. Çift dokunma ve ağ tekrarında aynı `submissionId` korunur. Form içeriği değişirse yeni `submissionId` üretilir. Yeni mobil paketler: `react-native-maps`, `@react-native-community/datetimepicker`, `react-dom` (npm bağımlılık çakışması için `react` ile aynı sürüme sabitlendi). Barış için: API veya `contract.ts` değişikliği yok. `occurredAt` değeri `+03:00` ofsetli ISO metni olarak gönderilir.
 - **2026-11-28, `sude/mobile-setup`.** iPhone'da Expo Go ile ilk fiziksel cihaz testi yapıldı. Bağlantı denemesi, Harita, Karne ve test bildirimi gönderimi çalıştı. Takip sorgusu, aynı gönderimin tekrarı ve panelde tek kayıt kontrolü beklemede. Ayrıntılar "Mobil uygulamayı çalıştırma" bölümündeki "Fiziksel telefon testi" listesinde. Barış için: yeni bir istek yok.
 - **2026-11-28, `sude/mobile-setup`.** Mobil hata kutuları artık kısa teknik ayrıntı gösterir (örn. `GET /api/map · HTTP 503 · server_error`). Mobil `contract.ts` kopyası Barış'ın güncel dosyasıyla eşitlendi. Barış için: fiziksel telefonda `:3187` adresinde `GET /api/map` ve `GET /api/scorecard` HTTP 503 `server_error` döndürüyor. `:3000` adresinde ikisi de 200 dönüyor. Takip ucu `:3187` adresinde çalışıyor.
@@ -142,6 +143,10 @@ Terminaldeki QR kodunu Expo Go ile okutun. Önce **Bağlantı** sekmesinde **Ba�
 - [ ] Gelecekteki ve bir yıldan eski zamanda alanın altında neden görünmesi, gönderimin kapalı kalması.
 - [ ] Bildir sekmesinden gönderimde takip kodunun görünmesi, kodun Takip sekmesinde **İncelemede** olarak sorgulanması ve panelde tek kayıt görünmesi.
 - [ ] Gönder düğmesine hızlı iki kez dokunulduğunda tek kayıt oluşması.
+- [ ] Harita sekmesinde üç bölgenin renkli alan olarak çizilmesi, lejantın görünmesi ve bir bölgeye dokununca adının ve bandının yazılması.
+- [ ] Bildir sekmesinde fotoğraf seçme, önizleme ve kaldırma.
+- [ ] Fotoğraflı gönderim (`:3000` adresinde): takip kodunun görünmesi ve Büyükşehir görevlisinin panelde fotoğrafı açabilmesi.
+- [ ] Fotoğraflı gönderim ağ hatasında **Tekrar dene** ile tek kayıt oluşması.
 
 ## Veri modeli ve iş kuralları
 

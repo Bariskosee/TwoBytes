@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { getScorecard } from "@/api/client";
 import type { ScorecardResponse } from "@/api/contract";
 import { useApi } from "@/api/useApi";
+import { ProgressBar } from "@/components/progress-bar";
 import { Body, Card, ErrorNotice, Loading, Notice, Screen, Subhead, Title } from "@/components/ui";
 import { formatDay } from "@/lib/format";
 import { colors, font, space } from "@/theme";
@@ -45,6 +46,7 @@ export default function ScorecardScreen() {
                         {item.completedMeasures} / {item.totalMeasures}
                       </Text>
                       <Text style={styles.unit}>önlem tamamlandı · %{Math.round(rate * 100)}</Text>
+                      <ProgressBar fraction={rate} color={colors.action} />
                     </View>
                   )}
                 </Card>

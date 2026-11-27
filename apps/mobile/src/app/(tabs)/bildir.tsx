@@ -1,9 +1,10 @@
 import * as Crypto from "expo-crypto";
 import { useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { createReport, describeDetail, describeError } from "@/api/client";
+import { createReport, createReportWithPhoto, describeDetail, describeError } from "@/api/client";
 import { EventTimeField } from "@/components/event-time-field";
 import { type Coordinate, LocationPicker } from "@/components/location-picker";
+import { PhotoField, type PickedPhoto } from "@/components/photo-field";
 import { Body, Button, Card, Field, Notice, Screen, Small, Subhead, Title } from "@/components/ui";
 import { floorToMinute, toIstanbulIso, validateEventTime } from "@/lib/event-time";
 import { colors, font, space } from "@/theme";
@@ -20,6 +21,7 @@ export default function ReportScreen() {
   const [location, setLocation] = useState<Coordinate | null>(null);
   const [occurredAt, setOccurredAt] = useState(() => floorToMinute(new Date()));
   const [description, setDescription] = useState("");
+  const [photo, setPhoto] = useState<PickedPhoto | null>(null);
   const [outcome, setOutcome] = useState<Outcome>({ status: "idle" });
 
   // Aynı anda ikinci dokunuşu engeller. State güncellemesi bir sonraki çizimde görünür, ref anında.
@@ -51,13 +53,15 @@ export default function ReportScreen() {
       payload.location.longitude,
       payload.occurredAt,
       payload.description ?? "",
+      photo?.uri ?? "",
     ]);
     if (attempt.current?.fingerprint !== fingerprint) {
       attempt.current = { id: Crypto.randomUUID(), fingerprint };
     }
 
     try {
-      const result = await createReport({ submissionId: attempt.current.id, ...payload });
+      const report = { submissionId: attempt.current.id, ...payload };
+      const result = photo ? await createReportWithPhoto(report, photo) : await createReport(report);
       setOutcome({
         status: "success",
         trackingCode: result.data.trackingCode,
@@ -76,6 +80,7 @@ export default function ReportScreen() {
     setLocation(null);
     setOccurredAt(floorToMinute(new Date()));
     setDescription("");
+    setPhoto(null);
     setOutcome({ status: "idle" });
   }
 
@@ -143,7 +148,10 @@ export default function ReportScreen() {
         </Text>
       </View>
 
-      <Small>Fotoğraf ekleme sonraki aşamada gelecek.</Small>
+      <Card>
+        <Subhead>4. Fotoğraf (isteğe bağlı)</Subhead>
+        <PhotoField value={photo} onChange={setPhoto} disabled={submitting} />
+      </Card>
 
       {outcome.status === "error" && (
         <>
