@@ -10,14 +10,15 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 | --- | --- | --- |
 | Supabase şeması, kurum yetkileri ve iki demo kurum | ✅ Bulutta doğrulandı | Barış |
 | Fotoğrafsız bildirim, konuma göre yönlendirme ve ağ tekrarı | ✅ Bulutta doğrulandı | Barış |
-| Kurum girişi, canlı gelen kutusu, önlemler ve gerçek takip sorgusu | ✅ Yerelde doğrulandı. Bulutta görevli hesabı yok | Barış |
+| Kurum girişi, canlı gelen kutusu, önlemler ve gerçek takip sorgusu | ✅ Bulutta giriş ve kurum yetkisi doğrulandı | Barış |
 | Özel fotoğraf yükleme ve yetkili kurum görüntüleme | ✅ Bulutta doğrulandı | Barış |
 | Haftalık yoğunluk haritası ve gerçek kurum karnesi | ✅ Bulutta doğrulandı | Barış |
 | Expo ve mobil ekranlar | 🟡 Geliştirme sürüyor | Sude |
 
 ### Değişiklik günlüğü
 
-- **2026-11-28, `baris/report-inbox-measures`.** Ortak bulut Supabase (`hatguven`) bu dalın şemasına geçirildi ve beş migration'ın geçmişi depodaki dosya adlarıyla eşlendi. Ortak API `http://172.20.10.4:3000` adresinde bu dalın koduyla çalışıyor. Bulutta JSON ve fotoğraflı bildirim, tekrar gönderim, takip, harita ve karne doğrulandı. Sude için: `placeType` alanını göndermeyin. FormData'da bilinmeyen alan `400` döndürür. Bulutta henüz kurum görevlisi hesabı yok.
+- **2026-11-28, `baris/report-inbox-measures`.** Bulutta iki kurum için test görevlisi hesabı açıldı ve kurumlarına bağlandı. Giriş bilgileri Barış'ta. Her hesap yalnızca kendi kurumunun bildirimlerini ve fotoğraflarını açabiliyor, diğer kurumun kaydı `404` dönüyor. Sude'nin ortak sunucuya (`http://172.20.10.4:3000`) gönderdiği bildirim artık ilgili kurumun `/kurum` gelen kutusunda görünür.
+- **2026-11-28, `baris/report-inbox-measures`.** Ortak bulut Supabase (`hatguven`) bu dalın şemasına geçirildi ve beş migration'ın geçmişi depodaki dosya adlarıyla eşlendi. Ortak API `http://172.20.10.4:3000` adresinde bu dalın koduyla çalışıyor. Bulutta JSON ve fotoğraflı bildirim, tekrar gönderim, takip, harita ve karne doğrulandı. Sude için: `placeType` alanını göndermeyin. FormData'da bilinmeyen alan `400` döndürür.
 - **2026-11-28, `baris/report-inbox-measures`.** Fotoğraflı bildirim için FormData eklendi. Kurum görevlisi özel fotoğrafı panelden açabiliyor. Harita ve karne veritabanından hesaplanıyor. Mobil yanıt alanları aynı, örnek yanıt başlığı kaldırıldı.
 - **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli ve gerçek takip API’si eklendi. Bildirim konuma göre yönlenir ve mobil gövdeden `placeType` kaldırıldı. Takipte gönderimin döndürdüğü kod kullanılır.
 - **2026-11-27, `baris/web-supabase-setup`.** Next.js API, ilk Supabase şeması ve iki demo kurum hazırlandı. Bildirim kaydı ve aynı gönderimin tekrarı doğrulandı. Harita, takip ve karne için ilk örnek yanıtlar eklendi.
