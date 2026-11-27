@@ -13,11 +13,12 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 | Kurum girişi, canlı gelen kutusu, önlemler ve gerçek takip sorgusu | ✅ Yerelde doğrulandı | Barış |
 | `GET /api/map` ve `GET /api/scorecard` | 🟡 Örnek yanıt | Barış |
 | Özel fotoğraf, haftalık harita özeti ve karne hesabı | ⬜ Sırada | Barış |
-| Expo iskeleti, ekran taslakları ve telefondan ilk API denemesi | 🟡 İskelet derleniyor, fiziksel telefonda doğrulanacak | Sude |
+| Expo iskeleti, ekran taslakları ve telefondan ilk API denemesi | 🟡 iPhone'da Expo Go ile çalışıyor. Takip sorgusu, tekrar gönderim ve panel kontrolü bekliyor | Sude |
 | Mobil harita katmanı, konum ve zaman seçimi, fotoğraf | ⬜ Sırada | Sude |
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `sude/mobile-setup`.** iPhone'da Expo Go ile ilk fiziksel cihaz testi yapıldı. Bağlantı denemesi, Harita, Karne ve test bildirimi gönderimi çalıştı. Takip sorgusu, aynı gönderimin tekrarı ve panelde tek kayıt kontrolü beklemede. Ayrıntılar "Mobil uygulamayı çalıştırma" bölümündeki "Fiziksel telefon testi" listesinde. Barış için: yeni bir istek yok.
 - **2026-11-28, `sude/mobile-setup`.** Mobil hata kutuları artık kısa teknik ayrıntı gösterir (örn. `GET /api/map · HTTP 503 · server_error`). Mobil `contract.ts` kopyası Barış'ın güncel dosyasıyla eşitlendi. Barış için: fiziksel telefonda `:3187` adresinde `GET /api/map` ve `GET /api/scorecard` HTTP 503 `server_error` döndürüyor. `:3000` adresinde ikisi de 200 dönüyor. Takip ucu `:3187` adresinde çalışıyor.
 - **2026-11-28, `sude/mobile-setup`.** `apps/mobile` altında Expo (SDK 58) ve Expo Router iskeleti eklendi. Beş sekme var: Harita, Bildir, Takip, Karne ve Bağlantı. Harita, Karne ve Takip ekranları API'den okur. Bildir ekranı taslaktır ve gönderim düğmesi kapalıdır. Bağlantı sekmesi sunucuya ulaşmayı ve kurgu bir bildirim göndermeyi dener. `apps/web/src/lib/contract.ts` dosyası `apps/mobile/src/api/contract.ts` olarak birebir kopyalandı. Web tarafında değişiklik yok. Barış için: `contract.ts` değişirse mobil kopyası da güncellenmeli. Mobil, API adresini `EXPO_PUBLIC_API_URL` ile okur. Kurulum adımları aşağıdaki "Mobil uygulamayı çalıştırma" bölümünde.
 - **2026-11-28, `baris/report-inbox-measures`.** Güncel `/kurum` paneli ve API yayımlanıyor. Bildirim konuma göre yönlenir ve mobil gövdeden `placeType` kaldırıldı. Takipte gönderimin döndürdüğü kod kullanılır.
@@ -125,6 +126,16 @@ npx expo start --clear
 ```
 
 Terminaldeki QR kodunu Expo Go ile okutun. Önce **Bağlantı** sekmesinde **Bağlantıyı dene** düğmesini kullanın. Başarılı olursa **Test bildirimi gönder** takip kodu döndürür. Kod, Takip sekmesinde sorgulanabilir. Kontroller için `npm run typecheck` kullanılır.
+
+#### Fiziksel telefon testi (iPhone, Expo Go)
+
+- [x] **Bağlantıyı dene** HTTP 200 döndürdü (172 ms, 3 bölge).
+- [x] Harita sekmesi üç bölgeyi listeler ve üçünde **Yetersiz veri** yazar. Bölgeler şimdilik liste halindedir.
+- [x] Karne sekmesi Örnek Büyükşehir Belediyesi için 2/2 (%100), Örnek İlçe Belediyesi için **Bu dönemde önlem kaydı yok** gösterir.
+- [x] **Test bildirimi gönder** HTTP 201 ve bir takip kodu döndürdü.
+- [ ] Takip sekmesinde bu kodla durum sorgulama.
+- [ ] **Aynı gönderimi tekrar dene** ile ikinci kayıt oluşmadığının kontrolü.
+- [ ] Gönderilen kaydın `/kurum` panelinde tek kayıt olarak görünmesi.
 
 ## Veri modeli ve iş kuralları
 
