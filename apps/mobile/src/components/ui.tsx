@@ -15,7 +15,11 @@ import { colors, font, minTouch, radius, space } from "@/theme";
 export function Screen({ children }: { children: ReactNode }) {
   return (
     <SafeAreaView style={styles.safe} edges={["left", "right"]}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+      >
         {children}
       </ScrollView>
     </SafeAreaView>

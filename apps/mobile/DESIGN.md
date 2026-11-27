@@ -14,6 +14,16 @@ Dışarıda, çoğu zaman stresli bir anda telefonla bildirim yapan veya bir bil
 - Kapalı düğmenin nedeni düğmenin altında yazılır.
 - Animasyon yok. Azaltılmış hareket ayarı ek iş gerektirmiyor.
 
+### Bildir ekranı
+- Sıra: yer, zaman, açıklama, gönder. Gönder düğmesi en altta ve tek birincil eylem.
+- Konum haritaya dokunarak seçilir, işaretçi son dokunulan yere taşınır. Konum izni istenmez ve cihazın konumu kullanılmaz.
+- Seçilen koordinat haritanın altında metin olarak da yazılır. Harita yalnızca dokunmayla kullanılabildiği için bu metin ekran okuyucuya durumu bildirir.
+- Zaman, iOS'ta sistem tarih-saat seçicisiyle (kompakt görünüm) seçilir. Seçici İstanbul saat dilimine ayarlıdır ve altında seçilen zaman metinle yazılır.
+- Seçiciye en küçük ve en büyük tarih sınırı verilmez. Böylece geçersiz bir zaman seçilebilir ve neden alanın altında görünür: gelecek veya bir yıldan eski.
+- Gönderim kapalıyken neden düğmenin altında yazılır ("Haritadan konum seçince gönderim açılır.").
+- Hata durumunda girilenler korunur. "Tekrar dene" aynı gönderimi tekrar eder ve tek kayıt oluşur.
+- Başarıda takip kodu büyük ve seçilebilir metin olarak gösterilir. Kod kopyalama düğmesi yok, uzun basılarak kopyalanır.
+
 ## Değerler
 Kaynak: `src/theme.ts`.
 
@@ -33,10 +43,15 @@ Yazı ölçeği 13, 16, 20 ve 25. Boşluk 4, 8, 16, 24, 32 ve 48. İki köşe ya
 ## Kontrol edildi
 - Tip kontrolü (`npm run typecheck`) hatasız.
 - `npx expo-doctor` 20 kontrolün hepsini geçti.
+- `npx expo install --check` paketlerin SDK ile uyumlu olduğunu gösterdi.
 - iOS paketi derlendi (`npx expo export --platform ios`).
+- Zaman kuralları (`src/lib/event-time.ts`) üç farklı cihaz saat diliminde (İstanbul, Los Angeles, Tokyo) Node'da denendi: İstanbul saati biçimi, `+03:00` ofsetli ISO, gelecek ve bir yıldan eski zaman, 365 gün sınırı.
 - Renk çiftlerinin kontrastı hesapla belirlendi, ölçüm aracıyla doğrulanmadı.
+- Telefonda (iPhone, Expo Go) Bağlantı, Harita ve Karne ekranları açıldı ve test bildirimi gönderildi.
 
 ## Henüz doğrulanmadı
-- Ekranlar bir cihazda veya simülatörde görülmedi. Ekran görüntüsü incelemesi yapılmadı.
+- Bildir ekranı (harita seçimi, tarih-saat seçici, gönderim) bir cihazda veya simülatörde görülmedi. Ekran görüntüsü incelemesi yapılmadı.
+- iOS kompakt tarih-saat seçicisinin dokunma hedefi 44 pt'ten küçük olabilir. Cihazda ölçülmedi.
+- Android'de iki adımlı seçici (önce tarih, sonra saat) yazıldı ama denenmedi.
+- Harita ekran okuyucuyla kullanılamaz. Konum seçimi dokunma gerektirir. Alternatif bir yol (ör. bölge merkezlerinden seçim) eklenmedi.
 - 320 px genişlik, %200 yazı boyutu ve ekran okuyucu denenmedi.
-- Hata ve boş durumlar gerçek cihazda denenmedi.

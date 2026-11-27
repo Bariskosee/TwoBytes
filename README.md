@@ -14,10 +14,12 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 | `GET /api/map` ve `GET /api/scorecard` | 🟡 Örnek yanıt | Barış |
 | Özel fotoğraf, haftalık harita özeti ve karne hesabı | ⬜ Sırada | Barış |
 | Expo iskeleti, ekran taslakları ve telefondan ilk API denemesi | 🟡 iPhone'da Expo Go ile çalışıyor. Takip sorgusu, tekrar gönderim ve panel kontrolü bekliyor | Sude |
-| Mobil harita katmanı, konum ve zaman seçimi, fotoğraf | ⬜ Sırada | Sude |
+| Bildir ekranı: haritadan konum, tarih ve saat seçimi, açıklama ve gönderim | 🟡 Kodlandı, iPhone'da doğrulanacak | Sude |
+| Harita ekranında bölge yoğunluk katmanı ve bildirimde fotoğraf | ⬜ Sırada | Sude |
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `sude/mobile-setup`.** Bildir ekranından fotoğrafsız bildirim gönderilebiliyor. Kullanıcı haritaya dokunarak yeri seçer, işaretçi son dokunulan yere taşınır ve konum izni istenmez. Olay tarihi ve saati İstanbul saatiyle seçilir. Gelecekteki veya bir yıldan eski zaman için alanın altında neden gösterilir. Gönderim `POST /api/reports` JSON gövdesini kullanır ve başarıda takip kodunu gösterir. Çift dokunma ve ağ tekrarında aynı `submissionId` korunur. Form içeriği değişirse yeni `submissionId` üretilir. Yeni mobil paketler: `react-native-maps`, `@react-native-community/datetimepicker`, `react-dom` (npm bağımlılık çakışması için `react` ile aynı sürüme sabitlendi). Barış için: API veya `contract.ts` değişikliği yok. `occurredAt` değeri `+03:00` ofsetli ISO metni olarak gönderilir.
 - **2026-11-28, `sude/mobile-setup`.** iPhone'da Expo Go ile ilk fiziksel cihaz testi yapıldı. Bağlantı denemesi, Harita, Karne ve test bildirimi gönderimi çalıştı. Takip sorgusu, aynı gönderimin tekrarı ve panelde tek kayıt kontrolü beklemede. Ayrıntılar "Mobil uygulamayı çalıştırma" bölümündeki "Fiziksel telefon testi" listesinde. Barış için: yeni bir istek yok.
 - **2026-11-28, `sude/mobile-setup`.** Mobil hata kutuları artık kısa teknik ayrıntı gösterir (örn. `GET /api/map · HTTP 503 · server_error`). Mobil `contract.ts` kopyası Barış'ın güncel dosyasıyla eşitlendi. Barış için: fiziksel telefonda `:3187` adresinde `GET /api/map` ve `GET /api/scorecard` HTTP 503 `server_error` döndürüyor. `:3000` adresinde ikisi de 200 dönüyor. Takip ucu `:3187` adresinde çalışıyor.
 - **2026-11-28, `sude/mobile-setup`.** `apps/mobile` altında Expo (SDK 58) ve Expo Router iskeleti eklendi. Beş sekme var: Harita, Bildir, Takip, Karne ve Bağlantı. Harita, Karne ve Takip ekranları API'den okur. Bildir ekranı taslaktır ve gönderim düğmesi kapalıdır. Bağlantı sekmesi sunucuya ulaşmayı ve kurgu bir bildirim göndermeyi dener. `apps/web/src/lib/contract.ts` dosyası `apps/mobile/src/api/contract.ts` olarak birebir kopyalandı. Web tarafında değişiklik yok. Barış için: `contract.ts` değişirse mobil kopyası da güncellenmeli. Mobil, API adresini `EXPO_PUBLIC_API_URL` ile okur. Kurulum adımları aşağıdaki "Mobil uygulamayı çalıştırma" bölümünde.
@@ -136,6 +138,10 @@ Terminaldeki QR kodunu Expo Go ile okutun. Önce **Bağlantı** sekmesinde **Ba�
 - [ ] Takip sekmesinde bu kodla durum sorgulama.
 - [ ] **Aynı gönderimi tekrar dene** ile ikinci kayıt oluşmadığının kontrolü.
 - [ ] Gönderilen kaydın `/kurum` panelinde tek kayıt olarak görünmesi.
+- [ ] Bildir sekmesinde haritaya dokunarak konum seçimi ve işaretçinin başka bir dokunuşla taşınması.
+- [ ] Gelecekteki ve bir yıldan eski zamanda alanın altında neden görünmesi, gönderimin kapalı kalması.
+- [ ] Bildir sekmesinden gönderimde takip kodunun görünmesi, kodun Takip sekmesinde **İncelemede** olarak sorgulanması ve panelde tek kayıt görünmesi.
+- [ ] Gönder düğmesine hızlı iki kez dokunulduğunda tek kayıt oluşması.
 
 ## Veri modeli ve iş kuralları
 
