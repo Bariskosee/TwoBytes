@@ -13,10 +13,13 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 | Kurum girişi, canlı gelen kutusu, önlemler ve gerçek takip sorgusu | ✅ Bulutta giriş ve kurum yetkisi doğrulandı | Barış |
 | Özel fotoğraf yükleme ve yetkili kurum görüntüleme | ✅ Bulutta doğrulandı | Barış |
 | Haftalık yoğunluk haritası ve gerçek kurum karnesi | ✅ Bulutta doğrulandı | Barış |
+| Kurumlar arası yetki kontrolü | ✅ 50 pgTAP testi ve iki kurumla HTTP testi geçti | Barış |
+| Sunum verisi ve 1/2 → 2/2 provası | ✅ Ayrı yerel ortamda doğrulandı | Barış |
 | Expo ve mobil ekranlar | 🟡 Geliştirme sürüyor | Sude |
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `baris/demo-acceptance`.** Kurumlar arası yetki regresyon testleri ve isteğe bağlı `supabase/demo.sql` eklendi. `:3191` ortamında erişim ayrımı, haftalık harita bantları ve karnenin 1/2 → 2/2 provası doğrulandı. Sude’nin ortak sunum API adresi `:3000`.
 - **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli yenilendi. Başlıkta oturumdaki kurumun adı, **Büyükşehir** veya **İlçe** rozeti ve görevlinin e-postası görünüyor. İki kurumun ayrı renk teması var ve tarayıcı sekmesinde kurum adı yazıyor. Gelen kutusunda durum sayaçları ve filtresi var. Satırlarda bölge adı, olay ve bildirim zamanı görünüyor. Canlı gelen bildirim **Yeni** etiketi alıyor. Detayda bölge adı ve **Haritada aç** bağlantısı var. Yeni uç: `GET /api/institution/me`.
 - **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli IP adresiyle açılınca "Oturum denetleniyor…" yazısında kalıyordu. Next.js 16 geliştirme sunucusu `localhost` dışındaki adreslerden gelen geliştirme kaynaklarını engelliyordu. `next.config.ts` içinde `allowedDevOrigins: ["172.20.10.*"]` eklendi. Hotspot başka bir aralık verirse bu listeye eklenmeli.
 - **2026-11-28, `baris/report-inbox-measures`.** `.env.example` içindeki `SUPABASE_DB_URL` örneği, projenin gerçek session pooler adresine (`aws-1-eu-central-1.pooler.supabase.com`) düzeltildi.
@@ -67,10 +70,23 @@ TwoBytes/
 │   └── web/          # Next.js kurum paneli ve API
 └── supabase/
     ├── migrations/   # Şema, erişim politikaları ve iş kuralları
-    └── seed.sql      # İki kurgu kurum ve üç pilot bölge
+    ├── seed.sql      # İki kurgu kurum ve üç pilot bölge
+    ├── demo.sql      # İsteğe bağlı sunum kayıtları
+    └── tests/        # Veritabanı yetki testleri
 ```
 
 ### Kurulum ve doğrulama
+
+#### Ekip ortamları
+
+| Adres | Görev |
+| --- | --- |
+| `http://172.20.10.4:3000` | Ortak sunum API’si ve kurum paneli. Bulut Supabase’e bağlıdır. Sude’nin mobil uygulaması bu taban adresini kullanır. |
+| `:3187` | Barış’ın fotoğrafsız yerel geliştirme ortamı. |
+| `:3190` | Fotoğraf ve haftalık harita için ayrı yerel test ortamı. |
+| `http://127.0.0.1:3191` | Kurumlar arası yetki testleri ve kurgu veri provası. Ayrı yerel demo Supabase’ine bağlıdır. |
+
+Sude bir bildirim gönderdiğinde ve panelde görünmediğinde önce mobil `EXPO_PUBLIC_API_URL` değeri ile açık kurum panelinin ikisinin de ortak `:3000` ortamını kullandığını kontrol edin.
 
 Yerel Supabase için Docker çalışırken depo kökünde aşağıdaki komutları kullanın. İlk komut yerel yapılandırmayı oluşturur. `supabase start` migration’ları sırasıyla uygular ve demo kurumlarıyla bölgeleri yükler.
 
@@ -204,14 +220,49 @@ Fotoğrafsız JSON gövdesinde `submissionId`, `location.latitude`, `location.lo
 
 ## Kabul testleri
 
+### Kurumlar arası yetki kontrolü
+
+Yerel Supabase’i başlattıktan sonra depo kökünde pgTAP testini çalıştırın. Test veritabanı işlemini geri alır.
+
+```bash
+supabase test db supabase/tests/database/institution_access.test.sql
+```
+
+HTTP testi için ayrı yerel Supabase’e bağlı web uygulamasını çalıştırın. `apps/web/.env.local` içindeki Supabase URL’si ve anahtarlar, test edilecek web uygulamasıyla aynı yerel veritabanına ait olmalıdır. Her iki adres için de loopback IP kullanın. Örnek komutta web uygulaması 3191 portunda dinler.
+
+```bash
+cd apps/web
+TWOBYTES_TEST_API_URL=http://127.0.0.1:3191 node --env-file=.env.local scripts/check-institution-access.mjs
+```
+
+HTTP testi, kendi oluşturduğu görevli hesabıyla uygulamanın doğru veritabanına bağlı olduğunu denetler. Ardından iki kurum için gelen kutusu, detay, fotoğraf ve önlem işlemlerini kontrol eder. Geçici hesapları, kayıtları ve fotoğrafları test sonunda temizler.
+
+### Sunum verisini hazırlama
+
+Ayrı bir yerel Supabase başlatın. `seed.sql` çalıştıktan sonra, haritayı ilk kez açmadan `supabase status` çıktısındaki yerel veritabanı adresini `DEMO_DB_URL` olarak kullanın.
+
+```bash
+psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 -f supabase/demo.sql
+```
+
+Betik, son kapanan İstanbul haftasına Çarşı ve çevresi için 12, Moda için 6 ve Fenerbahçe için 2 kurgu bildirim koyar. Haritada sırasıyla **10–19**, **5–9** ve **Yetersiz veri** görünür. Büyükşehir karnesi **1/2** başlar. Başlangıç verisiyle aynı dönemde betik yeniden çalıştırılabilir. Uyumsuz kayıt veya yayımlanmış harita varsa işlem geri alınır.
+
+Bu başlangıç sayılarını ortak sunumda kullanmak için `:3000` API’si temiz bir sunum veritabanına bağlanmalıdır. Birikmiş ortak test kayıtları veya önceden yayımlanmış farklı bantlar varsa betik kurulumu geri alır.
+
+Provada Çarşı ve çevresinden yeni bir kurgu bildirim gönderin. Büyükşehir hesabıyla bu bildirimi **Çarşı Meydanı aydınlatmasının iyileştirilmesi** önlemine bağlayıp tamamlayın. Karne **2/2** olur. Provadan sonra başlangıç durumunu yeniden göstermek için ayrı bir temiz sunum ortamı hazırlayın.
+
+### Kabul listesi
+
 - [x] Hesapsız API isteği konum ve olay zamanı ile fotoğrafsız kurgu bildirim kaydeder. Aynı gönderimin eşzamanlı tekrarında tek kayıt ve aynı takip kodu elde edilir.
 - [x] Yerel demoda Çarşı ve çevresi Örnek Büyükşehir Belediyesine, Moda ve pilot dışı konumlar Örnek İlçe Belediyesine yönlenir.
 - [x] Yeni kayıt yetkili kurumun panelinde sayfa yenilemeden görünür. Bağlantı kesildiğinde beş saniyelik sorgulama devreye girer. Diğer kurum hesabı kaydı açamaz veya değiştiremez.
 - [x] Görevli başlık, sorumlu birim ve hedef tarih girerek önlem açabilir, aynı kurumun mevcut önlemini bağlayabilir ve tamamlanmayı kaydedebilir. Geçerli kod üç durumu gösterir. Geçersiz kod genel hata döndürür.
 - [ ] Fiziksel telefonda, haritadan konum ve olay zamanı seçilerek fotoğraflı ve fotoğrafsız bildirimler gönderilir. Fotoğraf kaydı başarısız olduğunda arayüz güvenli tekrar deneme sunar. Fotoğrafı ilgili kurum görevlisi açabilir.
 - [x] Yerel API ve Chromium testinde fotoğraf yalnızca yetkili kurum hesabıyla açılır. Aynı fotoğraflı gönderimin tekrarı tek kayda ve aynı takip koduna karşılık gelir.
+- [x] İki kurumun hesaplarıyla diğer kurumun bildirim detayı, özel fotoğrafı ve önlem işlemleri reddedilir. Üyeliği kaldırılan görevlinin erişimi kapanır.
 - [x] Kamu haritası kapanan haftanın yayımlanmış bantlarını gösterir. Eşik altı bölgeler **Yetersiz veri** görünür. Kamu ve takip yanıtlarının alanları, tablodaki paylaşılabilir sözleşmeyle sınırlıdır.
 - [x] Bir önlemi tamamlamak karne payını bir artırır. Tekrar tamamlama sonucu ve sayacı korur. Birden çok bildirimin aynı önleme bağlanması payda hesabını değiştirmez.
+- [x] Sunum betiği karneyi 1/2 ve bölgeleri 10–19, 5–9, Yetersiz veri bantlarıyla hazırlar. Aynı veriye yeniden uygulandığında yeni kopya oluşmaz.
 
 ## Beş dakikalık sunum
 
