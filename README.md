@@ -19,6 +19,7 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `baris/demo-acceptance`.** Sunum kayıtları gerçekçi hale getirildi: farklı konumlar, haftaya ve akşam saatlerine dağılmış zamanlar, kurgu açıklamalar ve Çarşı'da önleme bağlı kayıtlar. Harita bantları (10–19, 5–9, Yetersiz veri) ve karne (1/2) aynı kaldı.
 - **2026-11-28, `baris/demo-acceptance`.** Ortak sunum ortamı (`:3000`, bulut) hazırlandı. Eski test bildirimleri silindi. Harita Çarşı ve çevresi **10–19**, Moda **5–9**, Fenerbahçe **Yetersiz veri** gösteriyor. Büyükşehir karnesi **1/2**. Açık önlem: **Çarşı Meydanı aydınlatmasının iyileştirilmesi**. Sude için: provada bildirimi Çarşı ve çevresinden gönderin. Provadan sonra ortam aynı komutlarla 1/2 başlangıcına döndürülecek.
 - **2026-11-28, `baris/demo-acceptance`.** Ortak sunum ortamını temizleyen `apps/web/scripts/reset-demo.mjs` eklendi; `demo.sql` artık bulutta da uygulanabiliyor. HTTP yetki testi `GET /api/institution/me` ucunu da kapsıyor. pgTAP testleri bulutta da geçti (50/50, işlem geri alınarak). Dal, panel yenilemesinin üstüne taşındı.
 - **2026-11-28, `baris/demo-acceptance`.** Kurumlar arası yetki regresyon testleri ve isteğe bağlı `supabase/demo.sql` eklendi. `:3191` ortamında erişim ayrımı, haftalık harita bantları ve karnenin 1/2 → 2/2 provası doğrulandı. Sude’nin ortak sunum API adresi `:3000`.
@@ -247,7 +248,7 @@ Ayrı bir yerel Supabase başlatın. `seed.sql` çalıştıktan sonra, haritayı
 psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 -f supabase/demo.sql
 ```
 
-Betik, son kapanan İstanbul haftasına Çarşı ve çevresi için 12, Moda için 6 ve Fenerbahçe için 2 kurgu bildirim koyar. Haritada sırasıyla **10–19**, **5–9** ve **Yetersiz veri** görünür. Büyükşehir karnesi **1/2** başlar. Başlangıç verisiyle aynı dönemde betik yeniden çalıştırılabilir. Uyumsuz kayıt veya yayımlanmış harita varsa işlem geri alınır.
+Betik, son kapanan İstanbul haftasına Çarşı ve çevresi için 12, Moda için 6 ve Fenerbahçe için 2 kurgu bildirim koyar. Bildirimler bölge içinde farklı noktalara, haftanın günlerine ve akşam saatlerine dağılır. Kurgu açıklamalar taşır, bazıları açıklamasızdır. Çarşı'daki iki bildirim tamamlanmış önleme, üçü açık önleme bağlıdır; gelen kutusunda üç durum da görünür. Karne önlemleri saydığı için bu bağlantılar oranı değiştirmez. Haritada sırasıyla **10–19**, **5–9** ve **Yetersiz veri** görünür. Büyükşehir karnesi **1/2** başlar. Başlangıç verisiyle aynı dönemde betik yeniden çalıştırılabilir. Uyumsuz kayıt veya yayımlanmış harita varsa işlem geri alınır.
 
 #### Ortak sunum ortamını (`:3000`, bulut) hazırlama
 

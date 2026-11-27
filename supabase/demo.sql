@@ -49,25 +49,82 @@ begin
   on conflict (id) do nothing;
 
   -- Sabit kimlikler güvenli yeniden çalıştırmaya izin verir. Önceki döneme
-  -- ait satırlar ve tamamlanmış önlemler yeniden yazılmaz.
+  -- ait satırlar ve tamamlanmış önlemler yeniden yazılmaz. Konum, gün, saat ve
+  -- açıklama sıra numarasından türetilir; her çalıştırma aynı veriyi üretir.
   insert into public.reports (
     id, submission_id, institution_id, area_id, location, occurred_at, submitted_at, description
   )
   select
     (v_report_prefix || lpad((fixture.base_id + item.ordinal)::text, 12, '0'))::uuid,
     ('8fba3c98-0da1-4fa9-9d43-' || lpad((fixture.base_id + item.ordinal)::text, 12, '0'))::uuid,
-    a.institution_id, a.id, extensions.st_pointonsurface(a.boundary),
-    event.submitted_at - interval '30 minutes', event.submitted_at,
-    format('Kurgu sunum bildirimi · %s · %s', a.name, item.ordinal)
-  from (values ('iskele', 100, 12), ('moda', 200, 6), ('fenerbahce', 300, 2))
-    as fixture (area_id, base_id, fixture_count)
+    a.institution_id, a.id, point.geom,
+    event.submitted_at - make_interval(mins => 25 + (item.ordinal * 47) % 160),
+    event.submitted_at,
+    case when item.ordinal % 5 = 0 then null
+      else fixture.texts[1 + (item.ordinal - 1 - item.ordinal / 5) % array_length(fixture.texts, 1)] end
+  from (values
+    ('iskele', 100, 12, array[
+      'Çarşının arka sokağında sokak lambaları yanmıyor. Akşam eve dönerken biri uzun süre peşimden yürüdü.',
+      'Meydandaki banklarda oturan bir grup yanımdan geçerken laf attı. Çevrede kimse müdahale etmedi.',
+      'Dükkanlar kapandıktan sonra pasaj çok ıssızlaşıyor. Girişte beklemek tedirgin edici.',
+      'Durağın yanındaki geçit karanlık, biri telefonla fotoğrafımı çekmeye çalıştı.',
+      'Pazar yerinin çıkışında ısrarla yol sordu, sonra bir süre takip etti.',
+      'Meydanın köşesindeki kamera çalışmıyor gibi görünüyor, gece geç saatte sözlü tacize uğradım.',
+      'İskele tarafına inen merdivenlerde aydınlatma yetersiz. Arkadaşım da benzer bir durum yaşadı.',
+      'Kafelerin önündeki kalabalıkta biri rahatsız edici şekilde yakınlaştı.',
+      'Otobüsten indikten sonra meydana kadar olan yol çok karanlık.',
+      'Çarşı girişinde akşam saatlerinde sürekli aynı kişiler laf atıyor.'
+    ]),
+    ('moda', 200, 6, array[
+      'Sahil yolunda yürürken yavaşlayan bir araçtan laf atıldı.',
+      'Parkın iç kısmındaki yürüyüş yolunda lambaların yarısı yanmıyor.',
+      'Gece çıkışta caddede biri yanıma gelip ısrarla numaramı istedi.',
+      'Sahildeki tuvaletlerin çevresi akşamları çok ıssız ve karanlık.',
+      'Ara sokakta bir süre takip edildim, kapı önlerinde sığınacak yer yok.'
+    ]),
+    ('fenerbahce', 300, 2, array[
+      'Parkın otoparka bakan tarafı akşam saatlerinde çok tenha.',
+      'Koşu yolunda biri rahatsız edici yorumlar yaptı.'
+    ])
+  ) as fixture (area_id, base_id, fixture_count, texts)
   join public.map_areas a on a.id = fixture.area_id
   cross join lateral generate_series(1, fixture.fixture_count) as item (ordinal)
   cross join lateral (
-    select ((v_week_start + 1)::timestamp + interval '12 hours' + item.ordinal * interval '10 minutes')
+    select p.geom
+    from extensions.st_dump(extensions.st_generatepoints(a.boundary, fixture.fixture_count, fixture.base_id)) as p
+    where p.path[1] = item.ordinal
+  ) as point
+  cross join lateral (
+    -- Haftanın günlerine dağılmış, çoğunlukla akşam saatleri.
+    select (v_week_start::timestamp
+        + make_interval(days => (item.ordinal * 3 + fixture.base_id / 100) % 7)
+        + make_interval(hours => 17 + (item.ordinal * 5 + item.ordinal / 7 * 3) % 7,
+                        mins => (item.ordinal * 37 + fixture.base_id / 10) % 60))
       at time zone 'Europe/Istanbul' as submitted_at
   ) as event
   on conflict (id) do nothing;
+
+  -- Panelde farklı durumlar görünsün: en erken iki Çarşı bildirimi tamamlanmış
+  -- önleme, en geç üç Çarşı bildirimi açık önleme bağlanır. Karne önlemleri
+  -- saydığı için oran değişmez.
+  update public.reports r
+  set measure_id = linked.measure_id,
+      linked_at = greatest(r.submitted_at, m.opened_at) + interval '2 hours'
+  from (
+    select id, case
+        when rank_asc <= 2 then v_completed_measure
+        when rank_desc <= 3 then v_open_measure
+      end as measure_id
+    from (
+      select id,
+        row_number() over (order by submitted_at, id) as rank_asc,
+        row_number() over (order by submitted_at desc, id desc) as rank_desc
+      from public.reports
+      where area_id = 'iskele' and left(id::text, length(v_report_prefix)) = v_report_prefix
+    ) as ranked
+  ) as linked
+  join public.measures m on m.id = linked.measure_id
+  where r.id = linked.id and linked.measure_id is not null and r.measure_id is null;
 
   select jsonb_object_agg(area_id, report_count) into v_counts
   from (
