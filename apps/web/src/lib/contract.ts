@@ -15,6 +15,10 @@ export interface ApiError {
       | "invalid_request"
       | "invalid_code"
       | "rate_limited"
+      | "unauthorized"
+      | "forbidden"
+      | "not_found"
+      | "conflict"
       | "server_error";
     message: string;
   };

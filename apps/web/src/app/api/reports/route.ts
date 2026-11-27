@@ -50,7 +50,7 @@ function parse(body: unknown): Parsed {
   }
 
   if (b.description !== undefined && b.description !== null) {
-    if (typeof b.description !== "string" || b.description.length > 2000) {
+    if (typeof b.description !== "string" || b.description.length > 2000 || b.description.includes("\0")) {
       return { ok: false, message: "description must be a string of at most 2000 characters." };
     }
   }
@@ -103,13 +103,12 @@ export async function POST(request: NextRequest) {
     console.error("submit_report failed", {
       submission: mask(input.submissionId),
       code: error?.code,
-      message: error?.message,
     });
     return apiError(500, "server_error", "Bildirim kaydedilemedi. Lütfen tekrar deneyin.");
   }
 
   return NextResponse.json<CreateReportResponse>(
     { trackingCode, created: data.created },
-    { status: data.created ? 201 : 200 },
+    { status: data.created ? 201 : 200, headers: { "Cache-Control": "no-store" } },
   );
 }

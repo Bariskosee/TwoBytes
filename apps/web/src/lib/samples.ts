@@ -1,8 +1,8 @@
 // Örnek API yanıtları. Mobil ekranlar gerçek hesaplar gelene kadar bunlarla
 // geliştirilir. Yanıtlarda `X-HatGuven-Sample: 1` başlığı bulunur.
-// Gerçek hesaplar: harita özeti ve karne saat 10–14, takip 2–10 arasında.
+// Gerçek harita özeti ve karne hesapları saat 10–14 arasında eklenecek.
 
-import type { MapResponse, ScorecardResponse, TrackResponse } from "./contract";
+import type { MapResponse, ScorecardResponse } from "./contract";
 
 export const SAMPLE_HEADERS = { "X-HatGuven-Sample": "1" };
 
@@ -37,28 +37,6 @@ export const sampleMap: MapResponse = {
       band: "insufficient_data",
     },
   ],
-};
-
-export const sampleTrackPlanned: TrackResponse = {
-  institutionName: "Örnek Ulaşım İşletmesi Yolcu Güvenliği Birimi",
-  status: "measure_planned",
-  measure: {
-    title: "İskele durağına ek aydınlatma",
-    responsibleUnit: "Altyapı ve Durak Bakım Birimi",
-    targetDate: "2026-12-10",
-    completedAt: null,
-    outcomeSummary: null,
-  },
-};
-
-export const sampleTrackCompleted: TrackResponse = {
-  ...sampleTrackPlanned,
-  status: "completed",
-  measure: {
-    ...sampleTrackPlanned.measure!,
-    completedAt: "2026-12-05T14:30:00+03:00",
-    outcomeSummary: "Durağa iki yeni aydınlatma direği eklendi ve bekleme alanı aydınlatıldı.",
-  },
 };
 
 export const sampleScorecard: ScorecardResponse = {

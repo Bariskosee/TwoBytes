@@ -118,6 +118,26 @@ Alan adları uygulama başlangıcında mobil ve web arasında ortaklaştırılı
 | `GET /api/scorecard` | Kurum, dönem, tamamlanan önlem, toplam önlem ve oran alanlarını döndürür. |
 | Kurum API’si | Kurum oturumuyla gelen kutusunu ve bildirim detayını okur. Önlem açma, mevcut önleme bağlama ve tamamlama işlemlerinde kurum üyeliğini yeniden denetler. |
 
+#### Kurum panelini çalıştırma
+
+Supabase ortamında `supabase/migrations/` altındaki migration’ları sıra ile uygulayın ve demo için `supabase/seed.sql` dosyasını çalıştırın. Yerel Supabase CLI ile ilk kurulumda depo kökünde `supabase init`, ardından `supabase start` çalıştırabilirsiniz. Yerel bağlantı bilgilerini `supabase status` ile alın ve `apps/web/.env.example` üzerinden `apps/web/.env.local` oluşturun.
+
+Supabase Auth’ta bir kurum görevlisi hesabı oluşturun. Hesabın UUID’sini kullanarak üyeliğini ekleyin. İkinci demo hesabı için diğer kurumun yönlendirme anahtarını kullanın (`municipality` veya `transport`).
+
+```sql
+insert into public.institution_members (user_id, institution_id)
+select '<auth-kullanici-uuid>'::uuid, id
+from public.institutions
+where routing_key = 'transport'
+on conflict do nothing;
+```
+
+`apps/web` içinde `npm ci` ve `npm run dev` çalıştırıp `/kurum` adresinde görevli hesabıyla giriş yapın. Gelen kutusu görevlinin kurumlarına ait bildirimleri yeniden eskiye sıralar. Realtime bağlantısı kurulurken veya kesildiğinde beş saniyede bir veriyi yeniden çeker. Bildirim detayından önlem açılabilir, aynı kurumun mevcut önlemi bağlanabilir ve sonuç kaydedilebilir.
+
+`GET /api/institution/reports` gelen kutusunu, `GET /api/institution/reports/:id` bildirim detayını sunar. `POST /api/institution/reports/:id/measure` için JSON gövdesinde `action` değeri `open`, `link` veya `complete` olur. İstek ve yanıt tipleri `apps/web/src/lib/institution-contract.ts` içindedir.
+
+`POST /api/track` gerçek kaydın durumunu döndürür. Sunucu dakikada 30 sorguya izin verir. Vercel’de platformun ilettiği istemci IP’sini kullanır. Diğer ortamlarda uygulama güvenilir bir ters vekilin doğrulanmış IP başlığıyla çalışıyorsa `TRACKING_CLIENT_IP_HEADER` ayarlanabilir. Bu bilgi yoksa istekler ortak kotayı kullanır.
+
 ### Erişim ve gizlilik
 
 - **Kamu ekranları** yalnızca yayımlanmış harita özeti ve kurum karnesini okur. Harita bölgesel geometri ve bant, karne kurumsal toplamlar içerir.
