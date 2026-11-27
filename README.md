@@ -19,6 +19,7 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `baris/demo-acceptance`.** `supabase/prepare-demo.sh` eklendi. Sunum ortamını tek komutla 1/2 başlangıcına döndürür ve harita ile karneyi özetler. Provadan sonra bunu çalıştırmak yeterli.
 - **2026-11-28, `baris/demo-acceptance`.** Sunum kayıtları gerçekçi hale getirildi: farklı konumlar, haftaya ve akşam saatlerine dağılmış zamanlar, kurgu açıklamalar ve Çarşı'da önleme bağlı kayıtlar. Harita bantları (10–19, 5–9, Yetersiz veri) ve karne (1/2) aynı kaldı.
 - **2026-11-28, `baris/demo-acceptance`.** Ortak sunum ortamı (`:3000`, bulut) hazırlandı. Eski test bildirimleri silindi. Harita Çarşı ve çevresi **10–19**, Moda **5–9**, Fenerbahçe **Yetersiz veri** gösteriyor. Büyükşehir karnesi **1/2**. Açık önlem: **Çarşı Meydanı aydınlatmasının iyileştirilmesi**. Sude için: provada bildirimi Çarşı ve çevresinden gönderin. Provadan sonra ortam aynı komutlarla 1/2 başlangıcına döndürülecek.
 - **2026-11-28, `baris/demo-acceptance`.** Ortak sunum ortamını temizleyen `apps/web/scripts/reset-demo.mjs` eklendi; `demo.sql` artık bulutta da uygulanabiliyor. HTTP yetki testi `GET /api/institution/me` ucunu da kapsıyor. pgTAP testleri bulutta da geçti (50/50, işlem geri alınarak). Dal, panel yenilemesinin üstüne taşındı.
@@ -253,6 +254,14 @@ Betik, son kapanan İstanbul haftasına Çarşı ve çevresi için 12, Moda içi
 #### Ortak sunum ortamını (`:3000`, bulut) hazırlama
 
 Bulutta biriken test kayıtları ve önceden yayımlanmış harita özeti `demo.sql` dosyasının kurulumunu durdurur. Önce `reset-demo.mjs` ile temizleyin, sonra `demo.sql` dosyasını uygulayın. Bulut adresi `~/TwoBytes/apps/web/.env.local` içindedir.
+
+Tek komutla (temizlik, sunum verisi ve sonuç özeti):
+
+```bash
+supabase/prepare-demo.sh          # varsayılan: ~/TwoBytes/apps/web/.env.local, yani :3000'in bulut veritabanı
+```
+
+Adımları ayrı ayrı çalıştırmak için:
 
 ```bash
 cd apps/web
