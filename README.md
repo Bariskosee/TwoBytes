@@ -19,6 +19,7 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `baris/demo-acceptance`.** Kurum panelinin sol altındaki Next.js geliştirme simgesi (`N`) gizlendi: `next.config.ts` içinde `devIndicators: false`.
 - **2026-11-28, `baris/demo-acceptance`.** `supabase/prepare-demo.sh` eklendi. Sunum ortamını tek komutla 1/2 başlangıcına döndürür ve harita ile karneyi özetler. Provadan sonra bunu çalıştırmak yeterli.
 - **2026-11-28, `baris/demo-acceptance`.** Sunum kayıtları gerçekçi hale getirildi: farklı konumlar, haftaya ve akşam saatlerine dağılmış zamanlar, kurgu açıklamalar ve Çarşı'da önleme bağlı kayıtlar. Harita bantları (10–19, 5–9, Yetersiz veri) ve karne (1/2) aynı kaldı.
 - **2026-11-28, `baris/demo-acceptance`.** Ortak sunum ortamı (`:3000`, bulut) hazırlandı. Eski test bildirimleri silindi. Harita Çarşı ve çevresi **10–19**, Moda **5–9**, Fenerbahçe **Yetersiz veri** gösteriyor. Büyükşehir karnesi **1/2**. Açık önlem: **Çarşı Meydanı aydınlatmasının iyileştirilmesi**. Sude için: provada bildirimi Çarşı ve çevresinden gönderin. Provadan sonra ortam aynı komutlarla 1/2 başlangıcına döndürülecek.
