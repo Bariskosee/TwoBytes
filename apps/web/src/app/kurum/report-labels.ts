@@ -24,3 +24,9 @@ export function formatDateTime(value: string) {
 export function formatDate(value: string) {
   return date.format(new Date(`${value}T12:00:00Z`));
 }
+
+export function areaLabel(areaId: string | null, names: Map<string, string>) {
+  if (areaId === null) return "Pilot bölge dışı";
+  if (names.size === 0) return "Güvenlik bildirimi";
+  return names.get(areaId) ?? "Pilot bölge";
+}

@@ -37,6 +37,15 @@ export interface InstitutionReportResponse {
   availableMeasures: InstitutionMeasure[];
 }
 
+export type InstitutionKind = "metropolitan" | "district";
+
+/** GET /api/institution/me: oturumdaki görevli, kurumu ve pilot bölge adları. */
+export interface InstitutionProfileResponse {
+  email: string | null;
+  institution: { id: string; name: string; kind: InstitutionKind };
+  areas: { id: string; name: string }[];
+}
+
 export interface InstitutionReportPhotoResponse {
   signedUrl: string;
 }

@@ -2,7 +2,7 @@
 
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import type { InstitutionMeasureAction, InstitutionReportResponse } from "@/lib/institution-contract";
-import { formatDate, formatDateTime, statusLabels } from "./report-labels";
+import { areaLabel, formatDate, formatDateTime, statusLabels } from "./report-labels";
 import { ReportPhoto } from "./report-photo";
 import {
   institutionRequest,
@@ -12,15 +12,26 @@ import {
 } from "./requests";
 import styles from "./panel.module.css";
 
+const coordinate = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 5, maximumFractionDigits: 5 });
+
+function formatCoordinate(value: number) {
+  return coordinate.format(value);
+}
+
+function mapUrl(latitude: number, longitude: number) {
+  return `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=17/${latitude}/${longitude}`;
+}
+
 type DetailProps = {
   id: string;
+  areaNames: Map<string, string>;
   revision: number;
   onChange: () => void;
   onClose: () => void;
   onSessionExpired: () => void;
 };
 
-export function ReportDetail({ id, revision, onChange, onClose, onSessionExpired }: DetailProps) {
+export function ReportDetail({ id, areaNames, revision, onChange, onClose, onSessionExpired }: DetailProps) {
   const heading = useRef<HTMLHeadingElement>(null);
   const mutation = useRef<AbortController | null>(null);
   const [saving, setSaving] = useState(false);
@@ -121,10 +132,14 @@ export function ReportDetail({ id, revision, onChange, onClose, onSessionExpired
         <>
           <div className={styles.detailSection}>
             <div className={styles.detailTitle}>
-              <h3>Güvenlik bildirimi</h3>
+              <h3>{areaLabel(report.areaId, areaNames)}</h3>
               <span className={styles.status} data-status={report.status}>{statusLabels[report.status]}</span>
             </div>
-            <p className={styles.muted}>{report.institutionName}</p>
+            <p className={styles.muted}>
+              {report.areaId === null
+                ? "Pilot bölgelerin dışında. İnceleme kuyruğuna yönlendirildi."
+                : `Güvenlik bildirimi · ${report.institutionName}`}
+            </p>
             <dl className={styles.facts}>
               <div>
                 <dt>Olay zamanı</dt>
@@ -135,15 +150,20 @@ export function ReportDetail({ id, revision, onChange, onClose, onSessionExpired
                 <dd><time dateTime={report.submittedAt}>{formatDateTime(report.submittedAt)}</time></dd>
               </div>
               <div>
-                <dt>Enlem</dt>
-                <dd>{String(report.location.latitude).replace(".", ",")}</dd>
-              </div>
-              <div>
-                <dt>Boylam</dt>
-                <dd>{String(report.location.longitude).replace(".", ",")}</dd>
+                <dt>Konum</dt>
+                <dd>
+                  {formatCoordinate(report.location.latitude)}, {formatCoordinate(report.location.longitude)}
+                  <a
+                    className={styles.mapLink}
+                    href={mapUrl(report.location.latitude, report.location.longitude)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Haritada aç<span className={styles.visuallyHidden}> (yeni sekmede)</span>
+                  </a>
+                </dd>
               </div>
             </dl>
-            {report.areaId === null && <p className={styles.muted}>Pilot bölge dışında</p>}
             {report.description && (
               <div className={styles.description}>
                 <h4>Açıklama</h4>

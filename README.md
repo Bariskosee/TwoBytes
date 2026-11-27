@@ -17,6 +17,7 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli yenilendi. Başlıkta oturumdaki kurumun adı, **Büyükşehir** veya **İlçe** rozeti ve görevlinin e-postası görünüyor. İki kurumun ayrı renk teması var ve tarayıcı sekmesinde kurum adı yazıyor. Gelen kutusunda durum sayaçları ve filtresi var. Satırlarda bölge adı, olay ve bildirim zamanı görünüyor. Canlı gelen bildirim **Yeni** etiketi alıyor. Detayda bölge adı ve **Haritada aç** bağlantısı var. Yeni uç: `GET /api/institution/me`.
 - **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli IP adresiyle açılınca "Oturum denetleniyor…" yazısında kalıyordu. Next.js 16 geliştirme sunucusu `localhost` dışındaki adreslerden gelen geliştirme kaynaklarını engelliyordu. `next.config.ts` içinde `allowedDevOrigins: ["172.20.10.*"]` eklendi. Hotspot başka bir aralık verirse bu listeye eklenmeli.
 - **2026-11-28, `baris/report-inbox-measures`.** `.env.example` içindeki `SUPABASE_DB_URL` örneği, projenin gerçek session pooler adresine (`aws-1-eu-central-1.pooler.supabase.com`) düzeltildi.
 - **2026-11-28, `baris/report-inbox-measures`.** `supabase/migrate.sh` eklendi. Yeni migration'ları bulut ve yerel Supabase veritabanlarına tek komutla, eksik olan hedefe uygular. Buluta uygulamak için `brew install libpq` ve `.env.local` içinde `SUPABASE_DB_URL` gerekir. 3187'nin yerel veritabanındaki eksik harita, karne ve fotoğraf migration'ları uygulandı; o kurulumda Storage servisi çalışmadığı için fotoğraflı test 3000 veya 3190'da yapılmalı.
@@ -159,6 +160,7 @@ Bildirim, takip, harita ve karne uçları bu dalda gerçek veriyi kullanır. Fot
 | `GET /api/map` | Yayımlanan haftanın dönemini, bölge geometrilerini ve yoğunluk bantlarını döndürür. |
 | `POST /api/track` | Gövdede `trackingCode` alır. Kurum adını, durumu, varsa önlemin başlığını, sorumlu birimini, hedef ve tamamlanma tarihlerini ve paylaşılabilir sonucunu döndürür. |
 | `GET /api/scorecard` | Kurum, dönem, tamamlanan önlem sayısı, toplam ve oran döndürür. |
+| `GET /api/institution/me` | Kurum oturumuyla görevlinin e-postasını, kurumunu (`id`, `name`, `kind`: `metropolitan` veya `district`) ve pilot bölge adlarını döndürür. |
 | `GET /api/institution/reports` | Kurum oturumuyla gelen kutusunu yeniden eskiye sıralar. Her sayfa en fazla 50 kayıt içerir. Sonraki sayfa, yanıttaki `nextCursor` değeri `cursor` olarak gönderilerek alınır. |
 | `GET /api/institution/reports/:id` | Kurum oturumuyla bildirim detayını, `hasPhoto` bilgisini ve bağlanabilecek aynı kurum önlemlerini döndürür. |
 | `GET /api/institution/reports/:id/photo` | Yetkili kurum oturumuna 60 saniye geçerli `signedUrl` döndürür. Fotoğrafı olmayan veya oturuma ait kurumda görünmeyen bildirim için `404` döner. |

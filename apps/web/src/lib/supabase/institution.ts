@@ -43,5 +43,5 @@ export async function institutionClient() {
     return { error: apiError(403, "forbidden", "Bu hesap bir kuruma atanmadı.") };
   }
 
-  return { client };
+  return { client, user, institutionId: membership.institution_id as string };
 }

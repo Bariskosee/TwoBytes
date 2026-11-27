@@ -3,13 +3,26 @@
 import { createBrowserClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import type { InstitutionInboxResponse } from "@/lib/institution-contract";
+import type { ReportStatus } from "@/lib/contract";
+import type {
+  InstitutionInboxResponse,
+  InstitutionKind,
+  InstitutionProfileResponse,
+} from "@/lib/institution-contract";
 import { ReportDetail } from "./report-detail";
-import { formatDateTime, statusLabels } from "./report-labels";
+import { areaLabel, formatDateTime, statusLabels } from "./report-labels";
 import { useInstitutionResource } from "./requests";
 import styles from "./panel.module.css";
 
 let nextInboxChannel = 0;
+
+const kindLabels: Record<InstitutionKind, string> = {
+  metropolitan: "Büyükşehir",
+  district: "İlçe",
+};
+
+const STATUS_ORDER: ReportStatus[] = ["in_review", "measure_planned", "completed"];
+type StatusFilter = ReportStatus | "all";
 
 function getBrowserClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -59,7 +72,12 @@ export function InstitutionPanel() {
       <PanelHeader />
       <main className={styles.authMain}>
         <section className={styles.authCard} aria-labelledby="institution-login-title">
-          <h1 id="institution-login-title">Kurum girişi</h1>
+          <div className={styles.authIntro}>
+            <h1 id="institution-login-title">Kurum girişi</h1>
+            <p className={styles.muted}>
+              Kurumunuza yönlendirilen bildirimleri incelemek ve önlem kaydetmek için görevli hesabınızla giriş yapın.
+            </p>
+          </div>
           {!client && <p role="alert" className={styles.error}>Kurum oturumu yapılandırılmamış.</p>}
           {client && userId === undefined && (
             <p role="status" className={styles.muted}>Oturum denetleniyor…</p>
@@ -125,15 +143,37 @@ function LoginForm({
   );
 }
 
-function PanelHeader({ children }: { children?: React.ReactNode }) {
+function PanelHeader({
+  profile,
+  children,
+}: {
+  profile?: InstitutionProfileResponse | null;
+  children?: React.ReactNode;
+}) {
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
         <div className={styles.brand}>
-          <strong>Güvenlik Haritası</strong>
-          <span>Kurum paneli</span>
+          <span className={styles.brandMark} aria-hidden="true" />
+          <span className={styles.brandText}>
+            <strong>Güvenlik Haritası</strong>
+            <span>Kurum paneli</span>
+          </span>
         </div>
-        {children}
+        {(profile || children) && (
+          <div className={styles.headerActions}>
+            {profile && (
+              <div className={styles.identity} aria-label="Oturumdaki kurum">
+                <span className={styles.kindBadge}>{kindLabels[profile.institution.kind]}</span>
+                <span className={styles.identityText}>
+                  <strong>{profile.institution.name}</strong>
+                  {profile.email && <span>{profile.email}</span>}
+                </span>
+              </div>
+            )}
+            {children}
+          </div>
+        )}
       </div>
     </header>
   );
@@ -216,14 +256,65 @@ function Inbox({
     revision,
     onSessionExpired,
   );
+  const { data: profile } = useInstitutionResource<InstitutionProfileResponse>(
+    "/api/institution/me",
+    0,
+    onSessionExpired,
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<StatusFilter>("all");
+  const [knownIds, setKnownIds] = useState<Set<string> | null>(null);
+  const [freshIds, setFreshIds] = useState<Set<string>>(() => new Set());
+  const [seenReports, setSeenReports] = useState<InstitutionInboxResponse["reports"]>();
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState(false);
   const inboxTitle = useRef<HTMLHeadingElement | null>(null);
   const selectedButton = useRef<HTMLButtonElement | null>(null);
 
   const reports = data?.reports;
+
+  // İlk yüklemeden sonra canlı gelen bildirimleri "Yeni" olarak işaretle.
+  if (reports !== seenReports) {
+    setSeenReports(reports);
+    if (reports && !cursor) {
+      const ids = reports.map((report) => report.id);
+      if (!knownIds) {
+        setKnownIds(new Set(ids));
+      } else {
+        const added = ids.filter((id) => !knownIds.has(id));
+        if (added.length > 0) {
+          setKnownIds(new Set([...knownIds, ...added]));
+          setFreshIds((previous) => new Set([...previous, ...added]));
+        }
+      }
+    }
+  }
+
+  const counts = STATUS_ORDER.reduce(
+    (result, status) => ({ ...result, [status]: reports?.filter((r) => r.status === status).length ?? 0 }),
+    {} as Record<ReportStatus, number>,
+  );
+  const visibleReports = filter === "all" ? reports : reports?.filter((report) => report.status === filter);
+  const areaNames = new Map(profile?.areas.map((area) => [area.id, area.name]));
   const showDetail = Boolean(reports && selectedId);
+
+  useEffect(() => {
+    if (!profile) return;
+    const previous = document.title;
+    document.title = `${profile.institution.name} | Kurum paneli`;
+    return () => { document.title = previous; };
+  }, [profile]);
+
+  function selectReport(id: string, button: HTMLButtonElement) {
+    selectedButton.current = button;
+    setSelectedId(id);
+    setFreshIds((previous) => {
+      if (!previous.has(id)) return previous;
+      const next = new Set(previous);
+      next.delete(id);
+      return next;
+    });
+  }
 
   function closeDetail() {
     setSelectedId(null);
@@ -251,8 +342,8 @@ function Inbox({
   }
 
   return (
-    <div className={styles.panel} lang="tr">
-      <PanelHeader>
+    <div className={styles.panel} lang="tr" data-institution={profile?.institution.kind}>
+      <PanelHeader profile={profile}>
         <button className={styles.signOut} onClick={signOut} disabled={signingOut}>
           {signingOut ? "Çıkış yapılıyor…" : "Çıkış yap"}
         </button>
@@ -262,7 +353,9 @@ function Inbox({
         <div className={styles.inboxHeading}>
           <div>
             <h1 ref={inboxTitle} tabIndex={-1}>Gelen kutusu</h1>
-            {reports && <p className={styles.muted} role="status">{reports.length} bildirim</p>}
+            <p className={styles.muted}>
+              {profile ? `${profile.institution.name} kurumuna yönlendirilen bildirimler` : "Kurum bildirimleri"}
+            </p>
           </div>
           {reports && (
             <p className={styles.connection} data-connected={connected} role="status">
@@ -270,6 +363,30 @@ function Inbox({
             </p>
           )}
         </div>
+        {reports && (
+          <div className={styles.filters} role="group" aria-label="Duruma göre filtrele">
+            <button
+              type="button"
+              className={styles.filter}
+              aria-pressed={filter === "all"}
+              onClick={() => setFilter("all")}
+            >
+              Tümü <span className={styles.count}>{reports.length}</span>
+            </button>
+            {STATUS_ORDER.map((status) => (
+              <button
+                key={status}
+                type="button"
+                className={styles.filter}
+                data-status={status}
+                aria-pressed={filter === status}
+                onClick={() => setFilter(status)}
+              >
+                {statusLabels[status]} <span className={styles.count}>{counts[status]}</span>
+              </button>
+            ))}
+          </div>
+        )}
         <div className={styles.workspace} data-detail-open={showDetail}>
           <section className={styles.inbox} aria-label="Kurum bildirimleri">
             {error && (
@@ -284,28 +401,36 @@ function Inbox({
                 {cursor ? "Bu sayfada bildirim yok." : "Kurumunuza atanmış henüz bir bildirim yok."}
               </p>
             )}
-            {reports && reports.length > 0 && (
+            {reports && reports.length > 0 && visibleReports?.length === 0 && (
+              <p className={styles.inboxNotice}>Bu durumda bildirim yok.</p>
+            )}
+            {visibleReports && visibleReports.length > 0 && (
               <ul className={styles.reportList}>
-                {reports.map((report) => (
+                {visibleReports.map((report) => (
                   <li key={report.id}>
                     <button
                       type="button"
                       className={styles.reportRow}
+                      data-status={report.status}
                       aria-current={report.id === selectedId ? "true" : undefined}
-                      onClick={(event) => {
-                        selectedButton.current = event.currentTarget;
-                        setSelectedId(report.id);
-                      }}
+                      onClick={(event) => selectReport(report.id, event.currentTarget)}
                     >
                       <span className={styles.rowTitle}>
-                        <strong>Güvenlik bildirimi</strong>
-                        <span className={styles.status} data-status={report.status}>
-                          {statusLabels[report.status]}
+                        <strong>{areaLabel(report.areaId, areaNames)}</strong>
+                        <span className={styles.rowBadges}>
+                          {freshIds.has(report.id) && <span className={styles.fresh}>Yeni</span>}
+                          <span className={styles.status} data-status={report.status}>
+                            {statusLabels[report.status]}
+                          </span>
                         </span>
                       </span>
                       <span className={styles.rowMetadata}>
-                        <span>{report.institutionName}</span>
-                        <time dateTime={report.submittedAt}>{formatDateTime(report.submittedAt)}</time>
+                        <span>
+                          Olay: <time dateTime={report.occurredAt}>{formatDateTime(report.occurredAt)}</time>
+                        </span>
+                        <span>
+                          Bildirim: <time dateTime={report.submittedAt}>{formatDateTime(report.submittedAt)}</time>
+                        </span>
                       </span>
                     </button>
                   </li>
@@ -335,6 +460,7 @@ function Inbox({
             <ReportDetail
               key={selectedId}
               id={selectedId}
+              areaNames={areaNames}
               revision={revision}
               onChange={refresh}
               onClose={closeDetail}
