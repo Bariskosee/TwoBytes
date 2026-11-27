@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 
 const INBOX = "/api/institution/reports";
+const PROFILE = "/api/institution/me";
 const DEMO_TENANTS = [
   { key: "metropolitan", areaId: "iskele", latitude: 40.992, longitude: 29.025 },
   { key: "district", areaId: "moda", latitude: 40.982, longitude: 29.025 },
@@ -283,16 +284,16 @@ async function main() {
     for (const tenant of DEMO_TENANTS) {
       const row = seeded.data.find(institution => institution.routing_key === tenant.key);
       check(row, `Seed the isolated ${tenant.key} institution before testing.`);
+      const email = `${tenant.key}-${emailMarker}@example.com`;
       const session = await authUser(
-        admin, localSupabase, supabaseUrl, publishableKey, authIds,
-        `${tenant.key}-${emailMarker}@example.com`, row.id,
+        admin, localSupabase, supabaseUrl, publishableKey, authIds, email, row.id,
       );
       const open = {
         action: "open", title: `${marker} ${tenant.key}`, responsibleUnit: "Test Birimi", targetDate,
       };
       measureTitles.push(open.title);
       tenants.push({
-        ...tenant, id: row.id, name: row.name, session, open,
+        ...tenant, id: row.id, name: row.name, email, session, open,
         complete: { action: "complete", outcomeSummary: `${marker} ${tenant.key} tamamlandı.` },
       });
     }
@@ -301,6 +302,19 @@ async function main() {
     // cookie-authenticated reads must work before exercising any write route.
     for (const tenant of tenants) {
       await request(api, INBOX, 200, { session: tenant.session });
+      const { data: profile } = await request(api, PROFILE, 200, { session: tenant.session });
+      exactFields(profile, ["email", "institution", "areas"], "Institution profile");
+      exactFields(profile.institution, ["id", "name", "kind"], "Institution profile institution");
+      check(
+        profile.email === tenant.email && profile.institution.id === tenant.id &&
+          profile.institution.name === tenant.name && profile.institution.kind === tenant.key,
+        `${tenant.key} profile did not describe the signed-in officer's own institution.`,
+      );
+      check(
+        Array.isArray(profile.areas) && profile.areas.some(area => area.id === tenant.areaId) &&
+          profile.areas.every(area => Object.keys(area).sort().join(",") === "id,name"),
+        "Institution profile area labels are missing or expose extra fields.",
+      );
     }
     const nonMember = await authUser(
       admin, localSupabase, supabaseUrl, publishableKey, authIds, `nonmember-${emailMarker}@example.com`,
@@ -351,7 +365,7 @@ async function main() {
     }
 
     const photoPath = `${INBOX}/${tenants[0].photo.id}`;
-    for (const [path, body] of [[INBOX], [photoPath], [`${photoPath}/photo`], [`${photoPath}/measure`, tenants[0].open]]) {
+    for (const [path, body] of [[PROFILE], [INBOX], [photoPath], [`${photoPath}/photo`], [`${photoPath}/measure`, tenants[0].open]]) {
       const anonymous = await request(api, path, 401, { body });
       const forbidden = await request(api, path, 403, { session: nonMember, body });
       check(anonymous.data.error?.code === "unauthorized" && forbidden.data.error?.code === "forbidden", "Anonymous and unassigned accounts were not rejected.");

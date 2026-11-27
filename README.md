@@ -14,11 +14,12 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 | Özel fotoğraf yükleme ve yetkili kurum görüntüleme | ✅ Bulutta doğrulandı | Barış |
 | Haftalık yoğunluk haritası ve gerçek kurum karnesi | ✅ Bulutta doğrulandı | Barış |
 | Kurumlar arası yetki kontrolü | ✅ 50 pgTAP testi ve iki kurumla HTTP testi geçti | Barış |
-| Sunum verisi ve 1/2 → 2/2 provası | ✅ Ayrı yerel ortamda doğrulandı | Barış |
+| Sunum verisi ve 1/2 → 2/2 provası | 🟡 Yerelde doğrulandı. Bulut ortamı sunum haftasında `reset-demo.mjs` ve `demo.sql` ile hazırlanacak | Barış |
 | Expo ve mobil ekranlar | 🟡 Geliştirme sürüyor | Sude |
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `baris/demo-acceptance`.** Ortak sunum ortamını temizleyen `apps/web/scripts/reset-demo.mjs` eklendi; `demo.sql` artık bulutta da uygulanabiliyor. HTTP yetki testi `GET /api/institution/me` ucunu da kapsıyor. pgTAP testleri bulutta da geçti (50/50, işlem geri alınarak). Dal, panel yenilemesinin üstüne taşındı.
 - **2026-11-28, `baris/demo-acceptance`.** Kurumlar arası yetki regresyon testleri ve isteğe bağlı `supabase/demo.sql` eklendi. `:3191` ortamında erişim ayrımı, haftalık harita bantları ve karnenin 1/2 → 2/2 provası doğrulandı. Sude’nin ortak sunum API adresi `:3000`.
 - **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli yenilendi. Başlıkta oturumdaki kurumun adı, **Büyükşehir** veya **İlçe** rozeti ve görevlinin e-postası görünüyor. İki kurumun ayrı renk teması var ve tarayıcı sekmesinde kurum adı yazıyor. Gelen kutusunda durum sayaçları ve filtresi var. Satırlarda bölge adı, olay ve bildirim zamanı görünüyor. Canlı gelen bildirim **Yeni** etiketi alıyor. Detayda bölge adı ve **Haritada aç** bağlantısı var. Yeni uç: `GET /api/institution/me`.
 - **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli IP adresiyle açılınca "Oturum denetleniyor…" yazısında kalıyordu. Next.js 16 geliştirme sunucusu `localhost` dışındaki adreslerden gelen geliştirme kaynaklarını engelliyordu. `next.config.ts` içinde `allowedDevOrigins: ["172.20.10.*"]` eklendi. Hotspot başka bir aralık verirse bu listeye eklenmeli.
@@ -247,7 +248,20 @@ psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 -f supabase/demo.sql
 
 Betik, son kapanan İstanbul haftasına Çarşı ve çevresi için 12, Moda için 6 ve Fenerbahçe için 2 kurgu bildirim koyar. Haritada sırasıyla **10–19**, **5–9** ve **Yetersiz veri** görünür. Büyükşehir karnesi **1/2** başlar. Başlangıç verisiyle aynı dönemde betik yeniden çalıştırılabilir. Uyumsuz kayıt veya yayımlanmış harita varsa işlem geri alınır.
 
-Bu başlangıç sayılarını ortak sunumda kullanmak için `:3000` API’si temiz bir sunum veritabanına bağlanmalıdır. Birikmiş ortak test kayıtları veya önceden yayımlanmış farklı bantlar varsa betik kurulumu geri alır.
+#### Ortak sunum ortamını (`:3000`, bulut) hazırlama
+
+Bulutta biriken test kayıtları ve önceden yayımlanmış harita özeti `demo.sql` dosyasının kurulumunu durdurur. Önce `reset-demo.mjs` ile temizleyin, sonra `demo.sql` dosyasını uygulayın. Bulut adresi `~/TwoBytes/apps/web/.env.local` içindedir.
+
+```bash
+cd apps/web
+node --env-file=.env.local scripts/reset-demo.mjs                                            # yalnızca listeler
+node --env-file=.env.local scripts/reset-demo.mjs --confirm=mygmosguieafmbxhenyn.supabase.co  # temizler
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f ../../supabase/demo.sql
+```
+
+- **Silinenler:** Bütün bildirimler, takip kodları, bildirim fotoğrafları, önlemler ve yayımlanmış harita özetleri. Kurumlar, bölgeler ve görevli hesapları kalır. `--confirm` verilmezse hiçbir şey silinmez; yanlış veritabanını temizlememek için değer hedef sunucunun adıyla aynı olmalıdır.
+- **Zamanlama:** Harita, İstanbul saatine göre son kapanan haftayı gösterir. Sunum verisini sunumun yapılacağı hafta içinde hazırlayın. Pazartesi geçerse iki komutu yeniden çalıştırın.
+- **Prova sonrası:** Prova karneyi 2/2 yapar. Başlangıç durumuna dönmek için aynı iki komutu tekrar çalıştırın.
 
 Provada Çarşı ve çevresinden yeni bir kurgu bildirim gönderin. Büyükşehir hesabıyla bu bildirimi **Çarşı Meydanı aydınlatmasının iyileştirilmesi** önlemine bağlayıp tamamlayın. Karne **2/2** olur. Provadan sonra başlangıç durumunu yeniden göstermek için ayrı bir temiz sunum ortamı hazırlayın.
 
