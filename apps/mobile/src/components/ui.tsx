@@ -142,10 +142,19 @@ export function Loading({ label }: { label: string }) {
   );
 }
 
-export function ErrorNotice({ message, onRetry }: { message: string; onRetry: () => void }) {
+export function ErrorNotice({
+  message,
+  detail,
+  onRetry,
+}: {
+  message: string;
+  detail?: string;
+  onRetry: () => void;
+}) {
   return (
     <View style={styles.stack}>
       <Notice kind="error">{message}</Notice>
+      {detail ? <Small>Teknik ayrıntı: {detail}</Small> : null}
       <Button label="Tekrar dene" variant="secondary" onPress={onRetry} />
     </View>
   );

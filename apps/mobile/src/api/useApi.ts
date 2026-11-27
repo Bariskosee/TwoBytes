@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { type ApiResult, describeError } from "./client";
+import { type ApiResult, describeDetail, describeError } from "./client";
 
 export type LoadState<T> =
   | { status: "loading" }
-  | { status: "error"; message: string }
+  | { status: "error"; message: string; detail?: string }
   | { status: "success"; data: T; sample: boolean };
 
 /** `load` modül düzeyinde sabit bir fonksiyon olmalı (ör. getMap). */
@@ -19,7 +19,9 @@ export function useApi<T>(load: () => Promise<ApiResult<T>>) {
         if (active) setState({ status: "success", data: result.data, sample: result.sample });
       })
       .catch((error: unknown) => {
-        if (active) setState({ status: "error", message: describeError(error) });
+        if (active) {
+          setState({ status: "error", message: describeError(error), detail: describeDetail(error) });
+        }
       });
     return () => {
       active = false;

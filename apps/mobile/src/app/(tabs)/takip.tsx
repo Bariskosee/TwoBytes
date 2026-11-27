@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { describeError, trackCode } from "@/api/client";
+import { describeDetail, describeError, trackCode } from "@/api/client";
 import type { TrackResponse } from "@/api/contract";
 import { Body, Button, Card, Field, Notice, Screen, Small, Subhead, Title } from "@/components/ui";
 import { formatDay, formatInstant, statusLabels } from "@/lib/format";
@@ -9,7 +9,7 @@ import { colors, font, space } from "@/theme";
 type Result =
   | { status: "idle" }
   | { status: "loading" }
-  | { status: "error"; message: string }
+  | { status: "error"; message: string; detail?: string }
   | { status: "success"; data: TrackResponse };
 
 export default function TrackScreen() {
@@ -26,7 +26,7 @@ export default function TrackScreen() {
       setResult({ status: "success", data });
     } catch (error) {
       // Girilen kod ekranda kalır. Düzeltmek tek adım olsun.
-      setResult({ status: "error", message: describeError(error) });
+      setResult({ status: "error", message: describeError(error), detail: describeDetail(error) });
     }
   }
 
@@ -54,7 +54,12 @@ export default function TrackScreen() {
       />
       {code.trim().length === 0 && <Small>Kodu yazınca düğme açılır.</Small>}
 
-      {result.status === "error" && <Notice kind="error">{result.message}</Notice>}
+      {result.status === "error" && (
+        <>
+          <Notice kind="error">{result.message}</Notice>
+          {result.detail ? <Small>Teknik ayrıntı: {result.detail}</Small> : null}
+        </>
+      )}
 
       {result.status === "success" && (
         <Card>

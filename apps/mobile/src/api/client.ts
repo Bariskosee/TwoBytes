@@ -15,13 +15,20 @@ export class ApiRequestError extends Error {
   kind: FailureKind;
   status?: number;
   code?: ApiErrorCode;
+  /** Örn. "GET /api/map". İstek gövdesi veya sorgu değeri içermez. */
+  endpoint?: string;
 
-  constructor(kind: FailureKind, message: string, status?: number, code?: ApiErrorCode) {
+  constructor(
+    kind: FailureKind,
+    message: string,
+    details: { status?: number; code?: ApiErrorCode; endpoint?: string } = {},
+  ) {
     super(message);
     this.name = "ApiRequestError";
     this.kind = kind;
-    this.status = status;
-    this.code = code;
+    this.status = details.status;
+    this.code = details.code;
+    this.endpoint = details.endpoint;
   }
 }
 
@@ -29,7 +36,7 @@ export interface ApiResult<T> {
   data: T;
   status: number;
   durationMs: number;
-  /** Sunucu örnek veri döndürdüğünde true (X-TwoBytes-Sample başlığı). */
+  /** Sunucu örnek veri döndürdüğünde true (X-TwoBytes-Sample başlığı). Güncel sunucu bu başlığı artık göndermiyor. */
   sample: boolean;
 }
 
@@ -43,9 +50,10 @@ export function apiBaseUrl(): string | null {
 
 // Gönderim kimliği ve takip kodu hassastır. İstek gövdelerini ve yanıtları günlüğe yazmıyoruz.
 async function request<T>(path: string, body?: unknown): Promise<ApiResult<T>> {
+  const endpoint = `${body === undefined ? "GET" : "POST"} ${path}`;
   const base = apiBaseUrl();
   if (!base) {
-    throw new ApiRequestError("config", "API adresi ayarlanmamış.");
+    throw new ApiRequestError("config", "API adresi ayarlanmamış.", { endpoint });
   }
 
   const controller = new AbortController();
@@ -65,9 +73,9 @@ async function request<T>(path: string, body?: unknown): Promise<ApiResult<T>> {
     });
   } catch {
     if (controller.signal.aborted) {
-      throw new ApiRequestError("timeout", "Sunucu zamanında yanıt vermedi.");
+      throw new ApiRequestError("timeout", "Sunucu zamanında yanıt vermedi.", { endpoint });
     }
-    throw new ApiRequestError("network", "Sunucuya ulaşılamadı.");
+    throw new ApiRequestError("network", "Sunucuya ulaşılamadı.", { endpoint });
   } finally {
     clearTimeout(timer);
   }
@@ -81,15 +89,17 @@ async function request<T>(path: string, body?: unknown): Promise<ApiResult<T>> {
 
   if (!response.ok) {
     const apiError = (parsed as Partial<ApiError> | undefined)?.error;
-    throw new ApiRequestError(
-      "api",
-      apiError?.message ?? "Sunucu hatası.",
-      response.status,
-      apiError?.code ?? "server_error",
-    );
+    throw new ApiRequestError("api", apiError?.message ?? "Sunucu hatası.", {
+      status: response.status,
+      code: apiError?.code ?? "server_error",
+      endpoint,
+    });
   }
   if (parsed === undefined) {
-    throw new ApiRequestError("invalid_response", "Beklenmeyen yanıt.", response.status);
+    throw new ApiRequestError("invalid_response", "Beklenmeyen yanıt.", {
+      status: response.status,
+      endpoint,
+    });
   }
 
   return {
@@ -133,4 +143,17 @@ export function describeError(error: unknown): string {
           return "Sunucuda bir sorun oluştu. Tekrar deneyin.";
       }
   }
+}
+
+/**
+ * Hata ayıklamak için kısa teknik ayrıntı. Örnek: "GET /api/map · HTTP 503 · server_error".
+ * Yalnızca yöntem, yol, durum kodu ve hata kodunu içerir. Kod veya gönderim kimliği içermez.
+ */
+export function describeDetail(error: unknown): string | undefined {
+  if (!(error instanceof ApiRequestError)) return undefined;
+  const parts = [error.endpoint];
+  if (error.status !== undefined) parts.push(`HTTP ${error.status}`);
+  if (error.code) parts.push(error.code);
+  if (error.status === undefined) parts.push(error.kind);
+  return parts.filter(Boolean).join(" · ");
 }

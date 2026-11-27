@@ -15,7 +15,7 @@ export default function MapScreen() {
       <Title>Bildirim yoğunluğu</Title>
 
       {state.status === "loading" && <Loading label="Harita özeti yükleniyor" />}
-      {state.status === "error" && <ErrorNotice message={state.message} onRetry={reload} />}
+      {state.status === "error" && <ErrorNotice message={state.message} detail={state.detail} onRetry={reload} />}
 
       {state.status === "success" && (
         <>

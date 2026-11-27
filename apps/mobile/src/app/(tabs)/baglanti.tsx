@@ -1,20 +1,20 @@
 import * as Crypto from "expo-crypto";
 import { useState } from "react";
 import { Text } from "react-native";
-import { apiBaseUrl, createReport, describeError, getMap } from "@/api/client";
+import { apiBaseUrl, createReport, describeDetail, describeError, getMap } from "@/api/client";
 import { Body, Button, Card, Notice, Screen, Small, Subhead, Title } from "@/components/ui";
 import { colors, font } from "@/theme";
 
 type Ping =
   | { status: "idle" }
   | { status: "loading" }
-  | { status: "error"; message: string }
+  | { status: "error"; message: string; detail?: string }
   | { status: "success"; httpStatus: number; durationMs: number; sample: boolean; areaCount: number };
 
 type Send =
   | { status: "idle" }
   | { status: "loading" }
-  | { status: "error"; message: string }
+  | { status: "error"; message: string; detail?: string }
   | { status: "success"; httpStatus: number; created: boolean; trackingCode: string };
 
 // Kurgu test konumu: İskele ve Çarşı bölgesinin yaklaşık merkezi.
@@ -39,7 +39,7 @@ export default function ConnectionScreen() {
         areaCount: result.data.areas.length,
       });
     } catch (error) {
-      setPing({ status: "error", message: describeError(error) });
+      setPing({ status: "error", message: describeError(error), detail: describeDetail(error) });
     }
   }
 
@@ -61,7 +61,7 @@ export default function ConnectionScreen() {
         trackingCode: result.data.trackingCode,
       });
     } catch (error) {
-      setSend({ status: "error", message: describeError(error) });
+      setSend({ status: "error", message: describeError(error), detail: describeDetail(error) });
     }
   }
 
@@ -98,7 +98,12 @@ export default function ConnectionScreen() {
             {ping.sample ? ", örnek veri" : ""}.
           </Notice>
         )}
-        {ping.status === "error" && <Notice kind="error">{ping.message}</Notice>}
+        {ping.status === "error" && (
+          <>
+            <Notice kind="error">{ping.message}</Notice>
+            {ping.detail ? <Small>Teknik ayrıntı: {ping.detail}</Small> : null}
+          </>
+        )}
       </Card>
 
       <Card>
@@ -128,6 +133,7 @@ export default function ConnectionScreen() {
         {send.status === "error" && (
           <>
             <Notice kind="error">{send.message}</Notice>
+            {send.detail ? <Small>Teknik ayrıntı: {send.detail}</Small> : null}
             {submissionId && (
               <Button label="Aynı gönderimi tekrar dene" variant="secondary" onPress={() => sendTestReport(true)} />
             )}
