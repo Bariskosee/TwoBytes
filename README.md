@@ -15,12 +15,14 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 | Haftalık yoğunluk haritası ve gerçek kurum karnesi | ✅ Bulutta doğrulandı | Barış |
 | Kurumlar arası yetki kontrolü | ✅ 50 pgTAP testi ve iki kurumla HTTP testi geçti | Barış |
 | Sunum verisi ve 1/2 → 2/2 provası | ✅ Bulut sunum ortamı (`:3000`) hazır, prova bekleniyor | Barış |
-| Expo iskeleti, ekran taslakları ve telefondan ilk API denemesi | 🟡 iPhone'da Expo Go ile çalışıyor. Takip sorgusu, tekrar gönderim ve panel kontrolü bekliyor | Sude |
-| Bildir ekranı: haritadan konum, tarih ve saat seçimi, açıklama, isteğe bağlı fotoğraf ve gönderim | 🟡 Kodlandı, iPhone'da doğrulanacak. Fotoğraflı gönderim yalnızca Storage açık API'de denenebilir | Sude |
-| Harita ekranında bölge yoğunluk katmanı ve lejant | 🟡 Kodlandı, iPhone'da doğrulanacak | Sude |
+| Expo iskeleti, ekran taslakları ve telefondan ilk API denemesi | ✅ iOS simülatöründe uçtan uca doğrulandı. iPhone provası bekliyor | Sude |
+| Bildir ekranı: haritadan konum, tarih ve saat seçimi, açıklama, isteğe bağlı fotoğraf ve gönderim | ✅ Simülatörde fotoğraflı ve fotoğrafsız gönderim doğrulandı (fotoğraf hatası düzeltildi). iPhone provası bekliyor | Sude | Sude |
+| Harita ekranında bölge yoğunluk katmanı ve lejant | ✅ Simülatörde üç bölge ve lejant doğru. iPhone provası bekliyor | Sude |
+| Sunum öncesi iPhone provası | ⬜ Sırada. Adımlar: "Sunum öncesi fiziksel prova" | Barış ve Sude |
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `baris/readme-e2e-and-rehearsal`.** README'ye iOS simülatöründe yapılan uçtan uca testin sonuçları ve sunum öncesi iPhone provasının adımları eklendi. Sude için: `main`'i çekin ve Expo'yu `npx expo start --clear` ile başlatın; yeni `apps/mobile/.env` ayarı olmadan fotoğraflı gönderim çalışmaz.
 - **2026-11-28, `baris/fix-mobile-photo-upload`.** Mobilde fotoğraflı gönderim "Sunucuya ulaşılamadı" hatası veriyordu ve istek ağa hiç çıkmıyordu. Sebep: Expo 58 global `fetch` yerine `expo/fetch` kuruyor; bu uygulama FormData'daki React Native `{ uri, name, type }` dosya parçasını desteklemiyor. `apps/mobile/.env` içinde `EXPO_PUBLIC_USE_RN_FETCH=1` ile React Native `fetch` kullanılıyor. Sude için: `git pull` sonrası Expo'yu `npx expo start --clear` ile yeniden başlatın. iOS simülatöründe Maestro ile doğrulandı: fotoğrafsız ve fotoğraflı bildirim, Büyükşehir'e yönlendirme, takip (İncelemede, Önlem planlandı, Tamamlandı), panelde önlem bağlama ve tamamlama, karne 1/2'den 2/2'ye.
 - **2026-11-28, `baris/demo-acceptance`.** Sude'nin `sude/mobile-setup` dalı (Expo uygulaması, `apps/mobile`) birleştirildi. Mobil adres: `EXPO_PUBLIC_API_URL=http://172.20.10.4:3000`.
 - **2026-11-28, `baris/demo-acceptance`.** Kurum panelinin sol altındaki Next.js geliştirme simgesi (`N`) gizlendi: `next.config.ts` içinde `devIndicators: false`.
@@ -170,6 +172,8 @@ npm ci
 EXPO_PUBLIC_API_URL=http://<API-bilgisayarinin-ip-adresi>:<port>
 ```
 
+`apps/mobile/.env` dosyası depoda gelir ve `EXPO_PUBLIC_USE_RN_FETCH=1` içerir. Bu ayar olmadan fotoğraflı gönderim ağa çıkmadan hata verir. `EXPO_PUBLIC_` değişkenleri derleme sırasında koda yazıldığı için, `.env` veya `.env.local` değiştiğinde Expo'yu mutlaka `--clear` ile başlatın.
+
 ```bash
 npx expo start --clear
 ```
@@ -193,6 +197,47 @@ Terminaldeki QR kodunu Expo Go ile okutun. Önce **Bağlantı** sekmesinde **Ba�
 - [ ] Bildir sekmesinde fotoğraf seçme, önizleme ve kaldırma.
 - [ ] Fotoğraflı gönderim (`:3000` adresinde): takip kodunun görünmesi ve Büyükşehir görevlisinin panelde fotoğrafı açabilmesi.
 - [ ] Fotoğraflı gönderim ağ hatasında **Tekrar dene** ile tek kayıt oluşması.
+
+#### iOS simülatörü uçtan uca testi (Maestro)
+
+2026-11-28'de iPhone 17 simülatöründe (iOS 26.3, Expo Go) Maestro ile test edildi. API `:3000`, veritabanı bulut.
+
+| Adım | Sonuç |
+| --- | --- |
+| Harita, Karne, Takip ve Bağlantı ekranları | ✅ Doğru veriyle açılıyor |
+| Haritadan Çarşı ve çevresini seçip fotoğrafsız gönderim | ✅ Takip kodu geldi, kayıt Örnek Büyükşehir Belediyesine düştü |
+| Takip sekmesi | ✅ Sırasıyla İncelemede, Önlem planlandı ve Tamamlandı (sonuç metniyle) |
+| Panelde **Mevcut önlem** ile bağlama ve tamamlama | ✅ Tarayıcıda Büyükşehir hesabıyla yapıldı |
+| Karne | ✅ 1/2'den 2/2'ye |
+| Fotoğraflı gönderim | ✅ Düzeltmeden sonra. Fotoğraf özel depoda, Büyükşehir açabiliyor, İlçe `404` alıyor |
+| Açıklama kutusunda klavye | ✅ Başlığa dokununca kapanıyor |
+
+Simülatörde denenmeyenler: gönder düğmesine iki kez hızlı dokunma, hatalı zaman uyarısı, fotoğraf yüklenirken ağ kopması ve Harita sekmesinde bölgeye dokunma.
+
+#### Sunum öncesi fiziksel prova (adım adım)
+
+Hazırlık:
+
+1. Barış'ın hotspot'u açık. Barış'ın Mac'i, Sude'nin Mac'i ve Sude'nin iPhone'u bu ağda. `ipconfig getifaddr en0` Barış'ın Mac'inde `172.20.10.4` vermeli.
+2. Barış'ın Mac'inde API çalışıyor: `cd ~/TwoBytes/apps/web && npm run dev -- -H 0.0.0.0 -p 3000`.
+3. Sude: `git pull origin main`, `apps/mobile/.env.local` içinde `EXPO_PUBLIC_API_URL=http://172.20.10.4:3000`, ardından `cd apps/mobile && npx expo start --clear`. QR kodunu iPhone'daki Expo Go ile okutun.
+4. Barış: tarayıcıda `http://172.20.10.4:3000/kurum`, `buyuksehir.gorevli@example.com` ile giriş.
+
+Prova:
+
+1. **Bağlantı** sekmesi → **Bağlantıyı dene**: HTTP 200.
+2. **Harita**: Çarşı ve çevresi 10–19, Moda 5–9, Fenerbahçe Yetersiz veri. Bir bölgeye dokunun, adı ve bandı yazmalı.
+3. **Karne**: Örnek Büyükşehir Belediyesi **1/2**.
+4. **Bildir**: Haritada Çarşı ve çevresine dokunun ("Seçilen konum: 40.99…, 29.02…"). İsteğe bağlı açıklama yazın, **Bildirimi gönder**. Takip kodunu not edin.
+5. Panel: bildirim sayfa yenilemeden **Yeni** etiketiyle en üstte görünmeli.
+6. **Takip**: kodu yazın → **İncelemede**.
+7. Panel: bildirimi açın → **Mevcut önlem** → **Çarşı Meydanı aydınlatmasının iyileştirilmesi** → **Önleme bağla**. Takip → **Önlem planlandı**.
+8. Panel: paylaşılabilir sonucu yazın → **Önlemi tamamla**. Takip → **Tamamlandı** ve sonuç metni.
+9. **Karne**: **2/2**.
+10. Fotoğraf: yeni bir bildirimde **Fotoğraf seç** ile bir görsel ekleyip gönderin. Panelde bildirimi açın, fotoğraf görünmeli.
+11. İsteğe bağlı: gönder düğmesine hızlıca iki kez dokunun, panelde tek kayıt olmalı. Gelecekteki bir saat seçin, form uyarı vermeli.
+
+Provadan sonra ortamı 1/2 başlangıcına döndürün: `~/TwoBytes-demo-acceptance/supabase/prepare-demo.sh`. Sorun olursa ekran görüntüsü ve takip koduyla bildirin.
 
 ## Veri modeli ve iş kuralları
 
@@ -346,6 +391,8 @@ Provada Çarşı ve çevresinden yeni bir kurgu bildirim gönderin. Büyükşehi
 | 2:20–3:20 | Karneyi **1/2 → 2/2** olarak gösterin. Kurumun tamamlanan iş kaydını SDG 5.2 ve 16.6 ile ilişkilendirin. |
 | 3:20–4:45 | İlçe ve büyükşehir belediyeleriyle kamu destekli pilotu ve ilgili kurumun saha önlemini nasıl yöneteceğini açıklayın. |
 | 4:45–5:00 | Geçiş süresi. |
+
+Sunumda bildirimi **Mevcut önlem** ile bağlayın; **Yeni önlem** seçilirse karne 2/2 yerine 2/3 olur. Önlem tamamlandıktan sonra panel listesi birkaç saniye içinde güncellenir. Sunumdan önce ortamı `~/TwoBytes-demo-acceptance/supabase/prepare-demo.sh` ile 1/2 başlangıcına döndürün.
 
 Karne demosunda aynı kurumda biri tamamlanmış, biri açık iki önlemle başlayın. Canlı olarak yeni önlem açılacaksa bir tamamlanmış önlemle başlayın ve **1/1 → 1/2 → 2/2** akışını gösterin.
 
