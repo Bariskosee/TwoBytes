@@ -1,136 +1,355 @@
-# TwoBytes | HatGüven MVP
+# TwoBytes | Güvenlik Haritası
 
-Kadınlar, kamusal alanda yaşadıkları tacizi veya güvenlik sorununu mobil uygulamadan kimlik bilgisi paylaşmadan bildirebilir. Herkes, toplulaştırılmış bildirim yoğunluğunu ve kurumların önlem tamamlama oranını görebilir. Kurum görevlisi, kendisine yönlendirilen bildirimi web panelinde inceler ve bir önleme bağlar. Bildirimi yapan kişi, önlemin durumunu takip koduyla izler.
+Kadınlar sokakta, parkta, meydanda ve diğer kamusal alanlarda yaşadıkları tacizi veya güvenlik sorununu, kimlik bilgisi paylaşmadan haritaya işaretleyerek bildirebilir. Kamuya açık harita haftalık bildirim yoğunluğunu bölge bazında gösterir. Ayrı web panelinde yetkili kamu görevlisi kendi kurumuna yönlendirilen bildirimi inceler ve tarihli bir önleme bağlar. Bildirimi yapan kişi, önlemin durumunu ve paylaşılabilir sonucu takip koduyla görür.
 
-Bu depo, iki kişilik ekibin **20 saatte geliştireceği prototipin uygulama planını** içerir. Demo bir pilot ilçe, üç harita bölgesi, iki örnek kurum ve kurgu kayıtlarla çalışır. Sunumdaki kamu iş birliği, gerçek pilot için önerilen işletim modelidir. Aydınlatma, kamera ve benzeri önlemlerin içeriğini kurum belirler ve saha çalışmasını kurum yürütür.
+Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli bir pilot yürütmek. Kurum, bildirimleri değerlendirir, sorumlu birimi ve hedef tarihi belirler, aydınlatma veya kamera gibi uygun gördüğü saha önlemlerini kendi süreçleriyle seçer ve uygular. Uygulama, önlemin planını ve tamamlanma kaydını takip eder. İki kişilik ekibin 20 saatlik prototipi, örnek iki belediye, üç demo bölgesi ve kurgu kayıtlarla bu iş akışını gösterir.
+
+## İlerleme
+
+| Alan | Durum | Sahibi |
+| --- | --- | --- |
+| Supabase şeması, kurum yetkileri ve iki demo kurum | ✅ Bulutta doğrulandı | Barış |
+| Fotoğrafsız bildirim, konuma göre yönlendirme ve ağ tekrarı | ✅ Bulutta doğrulandı | Barış |
+| Kurum girişi, canlı gelen kutusu, önlemler ve gerçek takip sorgusu | ✅ Bulutta giriş ve kurum yetkisi doğrulandı | Barış |
+| Özel fotoğraf yükleme ve yetkili kurum görüntüleme | ✅ Bulutta doğrulandı | Barış |
+| Haftalık yoğunluk haritası ve gerçek kurum karnesi | ✅ Bulutta doğrulandı | Barış |
+| Kurumlar arası yetki kontrolü | ✅ 50 pgTAP testi ve iki kurumla HTTP testi geçti | Barış |
+| Sunum verisi ve 1/2 → 2/2 provası | ✅ Bulut sunum ortamı (`:3000`) hazır, prova bekleniyor | Barış |
+| Expo iskeleti, ekran taslakları ve telefondan ilk API denemesi | 🟡 iPhone'da Expo Go ile çalışıyor. Takip sorgusu, tekrar gönderim ve panel kontrolü bekliyor | Sude |
+| Bildir ekranı: haritadan konum, tarih ve saat seçimi, açıklama, isteğe bağlı fotoğraf ve gönderim | 🟡 Kodlandı, iPhone'da doğrulanacak. Fotoğraflı gönderim yalnızca Storage açık API'de denenebilir | Sude |
+| Harita ekranında bölge yoğunluk katmanı ve lejant | 🟡 Kodlandı, iPhone'da doğrulanacak | Sude |
+
+### Değişiklik günlüğü
+
+- **2026-11-28, `baris/demo-acceptance`.** Sude'nin `sude/mobile-setup` dalı (Expo uygulaması, `apps/mobile`) birleştirildi. Mobil adres: `EXPO_PUBLIC_API_URL=http://172.20.10.4:3000`.
+- **2026-11-28, `baris/demo-acceptance`.** Kurum panelinin sol altındaki Next.js geliştirme simgesi (`N`) gizlendi: `next.config.ts` içinde `devIndicators: false`.
+- **2026-11-28, `baris/demo-acceptance`.** `supabase/prepare-demo.sh` eklendi. Sunum ortamını tek komutla 1/2 başlangıcına döndürür ve harita ile karneyi özetler. Provadan sonra bunu çalıştırmak yeterli.
+- **2026-11-28, `baris/demo-acceptance`.** Sunum kayıtları gerçekçi hale getirildi: farklı konumlar, haftaya ve akşam saatlerine dağılmış zamanlar, kurgu açıklamalar ve Çarşı'da önleme bağlı kayıtlar. Harita bantları (10–19, 5–9, Yetersiz veri) ve karne (1/2) aynı kaldı.
+- **2026-11-28, `baris/demo-acceptance`.** Ortak sunum ortamı (`:3000`, bulut) hazırlandı. Eski test bildirimleri silindi. Harita Çarşı ve çevresi **10–19**, Moda **5–9**, Fenerbahçe **Yetersiz veri** gösteriyor. Büyükşehir karnesi **1/2**. Açık önlem: **Çarşı Meydanı aydınlatmasının iyileştirilmesi**. Sude için: provada bildirimi Çarşı ve çevresinden gönderin. Provadan sonra ortam aynı komutlarla 1/2 başlangıcına döndürülecek.
+- **2026-11-28, `baris/demo-acceptance`.** Ortak sunum ortamını temizleyen `apps/web/scripts/reset-demo.mjs` eklendi; `demo.sql` artık bulutta da uygulanabiliyor. HTTP yetki testi `GET /api/institution/me` ucunu da kapsıyor. pgTAP testleri bulutta da geçti (50/50, işlem geri alınarak). Dal, panel yenilemesinin üstüne taşındı.
+- **2026-11-28, `baris/demo-acceptance`.** Kurumlar arası yetki regresyon testleri ve isteğe bağlı `supabase/demo.sql` eklendi. `:3191` ortamında erişim ayrımı, haftalık harita bantları ve karnenin 1/2 → 2/2 provası doğrulandı. Sude’nin ortak sunum API adresi `:3000`.
+- **2026-11-28, `sude/mobile-setup`.** Harita sekmesi artık bölgeleri haritada renkli alanlar olarak gösterir ve lejantta dönem ile **Bildirim yoğunluğu** etiketi bulunur. Bölgeye dokunmak onu seçer. **Yetersiz veri** bölgeleri kesik çizgiyle gösterilir ve liste altta durur. Bildir sekmesine isteğe bağlı tek fotoğraf eklendi. Fotoğraf kütüphaneden seçilir, 2048 piksele küçültülür ve JPEG'e çevrilir. Fotoğraflı gönderim `POST /api/reports` adresine `multipart/form-data` ile gider. Alanlar `submissionId`, `latitude`, `longitude`, `occurredAt`, `description` ve `photo`. Karne sekmesine doluluk çubuğu eklendi. Yeni mobil paketler: `expo-image-picker` ve `expo-image-manipulator`. Barış için: API veya `contract.ts` değişikliği yok. Fotoğraflı gönderim `:3187` adresinde Storage olmadığı için HTTP 503 döndürür. Fotoğraf testi `:3000` adresinde yapılmalı.
+- **2026-11-28, `sude/mobile-setup`.** Bildir ekranından fotoğrafsız bildirim gönderilebiliyor. Kullanıcı haritaya dokunarak yeri seçer, işaretçi son dokunulan yere taşınır ve konum izni istenmez. Olay tarihi ve saati İstanbul saatiyle seçilir. Gelecekteki veya bir yıldan eski zaman için alanın altında neden gösterilir. Gönderim `POST /api/reports` JSON gövdesini kullanır ve başarıda takip kodunu gösterir. Çift dokunma ve ağ tekrarında aynı `submissionId` korunur. Form içeriği değişirse yeni `submissionId` üretilir. Yeni mobil paketler: `react-native-maps`, `@react-native-community/datetimepicker`, `react-dom` (npm bağımlılık çakışması için `react` ile aynı sürüme sabitlendi). Barış için: API veya `contract.ts` değişikliği yok. `occurredAt` değeri `+03:00` ofsetli ISO metni olarak gönderilir.
+- **2026-11-28, `sude/mobile-setup`.** iPhone'da Expo Go ile ilk fiziksel cihaz testi yapıldı. Bağlantı denemesi, Harita, Karne ve test bildirimi gönderimi çalıştı. Takip sorgusu, aynı gönderimin tekrarı ve panelde tek kayıt kontrolü beklemede. Ayrıntılar "Mobil uygulamayı çalıştırma" bölümündeki "Fiziksel telefon testi" listesinde. Barış için: yeni bir istek yok.
+- **2026-11-28, `sude/mobile-setup`.** Mobil hata kutuları artık kısa teknik ayrıntı gösterir (örn. `GET /api/map · HTTP 503 · server_error`). Mobil `contract.ts` kopyası Barış'ın güncel dosyasıyla eşitlendi. Barış için: fiziksel telefonda `:3187` adresinde `GET /api/map` ve `GET /api/scorecard` HTTP 503 `server_error` döndürüyor. `:3000` adresinde ikisi de 200 dönüyor. Takip ucu `:3187` adresinde çalışıyor.
+- **2026-11-28, `sude/mobile-setup`.** `apps/mobile` altında Expo (SDK 58) ve Expo Router iskeleti eklendi. Beş sekme var: Harita, Bildir, Takip, Karne ve Bağlantı. Harita, Karne ve Takip ekranları API'den okur. Bildir ekranı taslaktır ve gönderim düğmesi kapalıdır. Bağlantı sekmesi sunucuya ulaşmayı ve kurgu bir bildirim göndermeyi dener. `apps/web/src/lib/contract.ts` dosyası `apps/mobile/src/api/contract.ts` olarak birebir kopyalandı. Web tarafında değişiklik yok. Barış için: `contract.ts` değişirse mobil kopyası da güncellenmeli. Mobil, API adresini `EXPO_PUBLIC_API_URL` ile okur. Kurulum adımları aşağıdaki "Mobil uygulamayı çalıştırma" bölümünde.
+- **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli yenilendi. Başlıkta oturumdaki kurumun adı, **Büyükşehir** veya **İlçe** rozeti ve görevlinin e-postası görünüyor. İki kurumun ayrı renk teması var ve tarayıcı sekmesinde kurum adı yazıyor. Gelen kutusunda durum sayaçları ve filtresi var. Satırlarda bölge adı, olay ve bildirim zamanı görünüyor. Canlı gelen bildirim **Yeni** etiketi alıyor. Detayda bölge adı ve **Haritada aç** bağlantısı var. Yeni uç: `GET /api/institution/me`.
+- **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli IP adresiyle açılınca "Oturum denetleniyor…" yazısında kalıyordu. Next.js 16 geliştirme sunucusu `localhost` dışındaki adreslerden gelen geliştirme kaynaklarını engelliyordu. `next.config.ts` içinde `allowedDevOrigins: ["172.20.10.*"]` eklendi. Hotspot başka bir aralık verirse bu listeye eklenmeli.
+- **2026-11-28, `baris/report-inbox-measures`.** `.env.example` içindeki `SUPABASE_DB_URL` örneği, projenin gerçek session pooler adresine (`aws-1-eu-central-1.pooler.supabase.com`) düzeltildi.
+- **2026-11-28, `baris/report-inbox-measures`.** `supabase/migrate.sh` eklendi. Yeni migration'ları bulut ve yerel Supabase veritabanlarına tek komutla, eksik olan hedefe uygular. Buluta uygulamak için `brew install libpq` ve `.env.local` içinde `SUPABASE_DB_URL` gerekir. 3187'nin yerel veritabanındaki eksik harita, karne ve fotoğraf migration'ları uygulandı; o kurulumda Storage servisi çalışmadığı için fotoğraflı test 3000 veya 3190'da yapılmalı.
+- **2026-11-28, `baris/report-inbox-measures`.** Bulutta iki kurum için test görevlisi hesabı açıldı ve kurumlarına bağlandı. Giriş bilgileri Barış'ta. Her hesap yalnızca kendi kurumunun bildirimlerini ve fotoğraflarını açabiliyor, diğer kurumun kaydı `404` dönüyor. Sude'nin ortak sunucuya (`http://172.20.10.4:3000`) gönderdiği bildirim artık ilgili kurumun `/kurum` gelen kutusunda görünür.
+- **2026-11-28, `baris/report-inbox-measures`.** Ortak bulut Supabase (`hatguven`) bu dalın şemasına geçirildi ve beş migration'ın geçmişi depodaki dosya adlarıyla eşlendi. Ortak API `http://172.20.10.4:3000` adresinde bu dalın koduyla çalışıyor. Bulutta JSON ve fotoğraflı bildirim, tekrar gönderim, takip, harita ve karne doğrulandı. Sude için: `placeType` alanını göndermeyin. FormData'da bilinmeyen alan `400` döndürür.
+- **2026-11-28, `baris/report-inbox-measures`.** Fotoğraflı bildirim için FormData eklendi. Kurum görevlisi özel fotoğrafı panelden açabiliyor. Harita ve karne veritabanından hesaplanıyor. Mobil yanıt alanları aynı, örnek yanıt başlığı kaldırıldı.
+- **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli ve gerçek takip API’si eklendi. Bildirim konuma göre yönlenir ve mobil gövdeden `placeType` kaldırıldı. Takipte gönderimin döndürdüğü kod kullanılır.
+- **2026-11-27, `baris/web-supabase-setup`.** Next.js API, ilk Supabase şeması ve iki demo kurum hazırlandı. Bildirim kaydı ve aynı gönderimin tekrarı doğrulandı. Harita, takip ve karne için ilk örnek yanıtlar eklendi.
 
 ## Ürün kapsamı
 
-| Özellik | MVP davranışı |
+| Ekran | MVP davranışı |
 | --- | --- |
-| Anonim mobil bildirim | Kullanıcı haritadan olay konumunu, tarihini ve saatini seçer. Sahiplik kuralı için yer türünü seçer. Açıklama ve tek fotoğraf isteğe bağlıdır. Gönderim başarıyla kaydedilince kopyalanabilir takip kodu görünür. |
-| Kamuya açık yoğunluk haritası | Hesapsız erişilir. Görsel referanstaki sıcak renkler, sabit bölgelerin toplu bildirim bantlarını gösterir. Lejantta veri dönemi ve **Bildirim yoğunluğu** etiketi bulunur. |
-| Canlı kurum paneli | Görevli giriş yapar. Kendi kurumuna atanmış yeni bildirimler gelen kutusunda sayfa yenilemeden görünür. Detay ekranında olay bilgileri ve varsa fotoğraf açılır. |
-| Tarihli önlem ve takip kodu | Görevli bir önlem açar veya bildirimi aynı kurumun mevcut önlemine bağlar. Önlemde başlık, sorumlu birim ve hedef tarih bulunur. Kapanışta tamamlanma tarihi ve paylaşılabilir sonuç kaydedilir. Kullanıcı kodla durumunu ve sonucu görür. |
-| Kamuya açık kurum karnesi | Her kurum için dönem, tamamlanan önlem sayısı, toplam önlem sayısı ve tamamlama oranı gösterilir. Oran, benzersiz önlem kayıtlarından hesaplanır. |
+| Anonim bildirim | Kullanıcı haritada konumu, ardından olayın tarihini ve saatini seçer. Açıklama ve bir fotoğraf isteğe bağlıdır. Kayıt tamamlandığında kopyalanabilir takip kodu görünür. |
+| Kamuya açık yoğunluk haritası | Hesap gerektirmez. Sabit bölgelerde yayımlanan haftanın toplu bildirim bantları gösterilir. Lejantta dönem ve **Bildirim yoğunluğu** etiketi bulunur. |
+| Kamuya açık kurum karnesi | Dönem, her kurumun tamamlanan önlem sayısı, toplam önlem sayısı ve tamamlama oranı gösterilir. |
+| Takip kodu sorgusu | Kodla kurum adı, durum, varsa önlemin hedef tarihi, tamamlanma tarihi ve paylaşılabilir sonuç görülür. |
+| Kurum web paneli | Görevli hesabıyla giriş yapar. Kurumuna atanan bildirimler canlı gelen kutusunda görünür. Detayda olay bilgileri ve varsa fotoğrafı inceler. Yeni önlem açabilir, bildirimi aynı kurumun mevcut önlemine bağlayabilir ve tamamlanma sonucunu kaydedebilir. |
 
-**Mobil ekranlar** arasında yoğunluk haritası, bildirim formu, takip kodu sorgusu ve kurum karnesi bulunur. **Web paneli** giriş, gelen kutusu ve bildirim detayından oluşur. Önlem açma, bağlama ve tamamlama işlemleri bildirim detayında yapılır.
+**SDG 5.2**, kadınlara yönelik şiddet ve taciz bildirimlerinin incelenip önlemlere dönüşmesiyle ilişkilidir. **SDG 16.6**, kurumun sorumlu birimini, hedef tarihi ve tamamlanma sonucunu izlenebilir kılmasıyla ilişkilidir. Karne, kurumların açtığı önlemleri tamamlama oranını ölçer. [BM Hedef 5](https://sdgs.un.org/goals/goal5) · [BM Hedef 16](https://sdgs.un.org/goals/goal16)
 
-**SDG 5.2** bağlantısı, kadınlara yönelik şiddet ve taciz bildirimlerinin incelenip önlemlere dönüşmesi. **SDG 16.6** bağlantısı, kurumun sorumlu birimini, hedef tarihini ve tamamlanma sonucunu izlenebilir kılması. Prototip, uygulanan önlemleri ve kurumun iş akışını gösterir. Tamamlama oranı, açılan önlemlerin işlenişini ölçer.
-
-## Mimari ve teknoloji seçimi
+## Mimari
 
 | Katman | Teknoloji ve görev |
 | --- | --- |
-| Mobil | Expo, React Native ve TypeScript. `react-native-maps` konum seçimi ve yoğunluk katmanı, `expo-image-picker` fotoğraf seçimi için. Fiziksel cihazda ilk doğrulama Expo Go ile. |
-| Web ve API | Next.js App Router ve TypeScript. Kurum paneli ve mobil uygulamanın çağıracağı JSON API aynı Next.js uygulamasında. Fotoğraflı gönderim `multipart/form-data` kullanır. |
-| Veri, oturum ve erişim | Supabase Postgres, Auth ve Row Level Security (RLS). Kurum üyeliği veritabanında tanımlanır. Kurum kullanıcıları yalnızca kendi kurumlarının kayıtlarında işlem yapabilir. |
-| Dosya | Supabase Storage özel bucket. Sunucu görseli doğrular, üst verileri kaldırarak yeniden kodlar ve saklar. Yetkili görevli kısa ömürlü imzalı bağlantıyla açabilir. |
-| Canlı gelen kutusu | Supabase Realtime ile yetkilendirilmiş güncelleme. Canlı bağlantı aksadığında kurum paneli beş saniyede bir veriyi tekrar çeker. |
+| Mobil | Expo, React Native ve TypeScript. Konum seçimi ve yoğunluk katmanı için `react-native-maps`, isteğe bağlı fotoğraf için `expo-image-picker`. İlk fiziksel cihaz testi Expo Go ile yapılır. |
+| Web ve API | Next.js App Router ve TypeScript. Kurum paneli `/kurum` adresinde açılır. Mobil uygulama Next.js API’sini çağırır. Fotoğraflı bildirim FormData kullanır. |
+| Veri ve erişim | Supabase Postgres, PostGIS ve Auth. Kurum üyeliği veritabanında tutulur. Satır bazlı erişim politikaları (RLS), görevlinin kurumunun kayıtlarını okumasına ve yetkili işlemleri yapmasına izin verir. |
+| Canlı gelen kutusu | Supabase Realtime, ilgili kurumun paneline yeniden sorgulama sinyali gönderir. Bağlantı kurulurken veya kesildiğinde panel veriyi beş saniyede bir yeniden çeker. |
+| Özel fotoğraf | Supabase Storage özel bucket. Sunucu görseli doğrular, üst verisini kaldırarak yeniden kodlar ve saklar. Yetkili görevli, kısa ömürlü imzalı bağlantıyla açar. |
 
 ```mermaid
 flowchart LR
-    Mobile[Mobil uygulama] -->|Bildirim ve takip kodu sorgusu| API[Next.js API]
-    Officer[Kurum görevlisi] --> Web[Kurum web paneli]
-    Web -->|Yetkili sorgu ve önlem işlemleri| API
+    Mobile[Mobil uygulama] -->|Bildirim ve takip kodu| API[Next.js API]
+    API -->|Haftalık yoğunluk ve kurum karnesi| Mobile
+    Officer[Kamu görevlisi] --> Panel[Kurum web paneli]
+    Panel -->|Yetkili sorgu ve önlem işlemleri| API
     API --> DB[(Supabase Postgres)]
+    DB -->|Kuruma özel Realtime sinyali| Panel
     API --> Storage[(Özel fotoğraf deposu)]
-    DB -->|Yetkili canlı bildirim| Web
-    DB -->|Haftalık harita özeti ve kurum karnesi| API
-    API -->|Yoğunluk bölgeleri ve karne| Mobile
 ```
-
-### Önerilen depo yapısı
 
 ```text
 TwoBytes/
-├── README.md
 ├── apps/
-│   ├── mobile/       # Expo mobil uygulaması
+│   ├── mobile/       # Expo mobil uygulaması planı
 │   └── web/          # Next.js kurum paneli ve API
 └── supabase/
-    ├── migrations/   # Şema, erişim politikaları ve özet sorguları
-    └── seed.sql      # Kurgu kurumlar, bölgeler, bildirimler ve önlemler
+    ├── migrations/   # Şema, erişim politikaları ve iş kuralları
+    ├── seed.sql      # İki kurgu kurum ve üç pilot bölge
+    ├── demo.sql      # İsteğe bağlı sunum kayıtları
+    └── tests/        # Veritabanı yetki testleri
 ```
 
-Uygulamalar ayağa kalktığında bu bölüme gerçek kurulum ve çalıştırma komutlarını ekleyin. Mobilin API adresini `EXPO_PUBLIC_API_URL` ile yapılandırın. Fiziksel telefonda yerel demo için telefonun erişebildiği bilgisayar adresini kullanın. Örnek ortam dosyasında yer tutucular, sunucu ortamında gerçek bağlantı ve servis anahtarları bulunur.
+### Kurulum ve doğrulama
+
+#### Ekip ortamları
+
+| Adres | Görev |
+| --- | --- |
+| `http://172.20.10.4:3000` | Ortak sunum API’si ve kurum paneli. Bulut Supabase’e bağlıdır. Sude’nin mobil uygulaması bu taban adresini kullanır. |
+| `:3187` | Barış’ın fotoğrafsız yerel geliştirme ortamı. |
+| `:3190` | Fotoğraf ve haftalık harita için ayrı yerel test ortamı. |
+| `http://127.0.0.1:3191` | Kurumlar arası yetki testleri ve kurgu veri provası. Ayrı yerel demo Supabase’ine bağlıdır. |
+
+Sude bir bildirim gönderdiğinde ve panelde görünmediğinde önce mobil `EXPO_PUBLIC_API_URL` değeri ile açık kurum panelinin ikisinin de ortak `:3000` ortamını kullandığını kontrol edin.
+
+Yerel Supabase için Docker çalışırken depo kökünde aşağıdaki komutları kullanın. İlk komut yerel yapılandırmayı oluşturur. `supabase start` migration’ları sırasıyla uygular ve demo kurumlarıyla bölgeleri yükler.
+
+```bash
+supabase init
+supabase start
+supabase status
+```
+
+#### Migration uygulama
+
+Yeni bir migration eklendiğinde `supabase/migrate.sh` onu bulut veritabanına ve çalışan bütün yerel Supabase veritabanlarına aynı anda uygular. Betik önce her hedefte eksik olan migration'ları listeler, sonra onay ister. Her migration, geçmiş kaydıyla birlikte tek transaction içinde çalışır. Hata olursa o migration geri alınır ve o hedefte sonrakilere geçilmez.
+
+```bash
+brew install libpq                     # psql, bir kez
+supabase/migrate.sh --dry-run          # hangi hedefte neyin eksik olduğunu gösterir
+supabase/migrate.sh                    # onaydan sonra yerel + bulut
+supabase/migrate.sh --local            # yalnızca yerel veritabanları
+supabase/migrate.sh --cloud            # yalnızca bulut
+```
+
+- **Yerel hedefler:** Docker'da çalışan bütün `supabase_db_twobytes*` konteynerleri otomatik bulunur.
+- **Bulut hedefi:** `SUPABASE_DB_URL` gerekir. Supabase Dashboard > Connect > Session pooler adresini, şifresiyle birlikte `apps/web/.env.local` dosyasına `SUPABASE_DB_URL=...` olarak ekleyin. Bu dosya git'e girmez.
+- **DROP veya RENAME uyarısı:** Migration bunlardan birini içeriyorsa betik uyarır. O veritabanına bağlı ve eski kodla çalışan sunucular bozulabilir; önce kodu güncelleyin.
+
+Bulut ortamında `supabase/migrations/` altındaki migration’ları ortamın migration geçmişine göre sırayla uygulayın. Yeni demo ortamına `supabase/seed.sql` ile örnek kurumları ve bölgeleri yükleyin. Önceden kurulmuş demo ortamında konuma göre yönlendirme migration’ı mevcut kurum kimliklerini ve bildirimlerin önceki atamalarını korur.
+
+Ortak bulut Supabase (`hatguven`) bütün migration'ların uygulandığı güncel şemadadır. Bu dalın kurum paneli ve API'si hem yerel Supabase'de hem bulutta doğrulandı. Fotoğraf yüklemeyi yerelde test etmek için yerel Supabase Storage servisini de çalıştırın. Ortak API'yi çalıştıran her bilgisayar bu dalın koduna geçmelidir, çünkü eski `place_type` alanı ve eski `submit_report` imzası kaldırıldı. Mobil entegrasyon için güncel test API’sinin adresini `EXPO_PUBLIC_API_URL` olarak ayarlayın.
+
+```bash
+cd apps/web
+npm ci
+cp .env.example .env.local
+```
+
+`.env.local` dosyasına Supabase URL’sini, yayımlanabilir anahtarı ve sunucu anahtarını ekleyin. `TRACKING_CODE_SECRET` için en az 32 karakterlik, ortamda sabit kalan bir değer kullanın. Örneğin `openssl rand -base64 48` ile üretebilirsiniz. `SUPABASE_SECRET_KEY` ve takip kodu sırrı sunucu ortamında kalır.
+
+```bash
+npm run dev -- -H 0.0.0.0
+```
+
+Web paneli yerelde `http://localhost:3000/kurum` adresinde açılır. Başka bir terminalde `apps/web` içinden `./scripts/smoke-report.sh` çalıştırarak fotoğrafsız kaydın ve ağ tekrarının yanıtını kontrol edin. Fiziksel telefonda `EXPO_PUBLIC_API_URL` değerini, telefonun ağdan erişebildiği bilgisayarın API adresiyle ayarlayın.
+
+Demo için Supabase Auth’ta birer görevli hesabı oluşturun. Her hesabın UUID’sini kendi kurumunun anahtarıyla eşleştirin. Diğer hesap için örnekteki `routing_key` değerini `district` olarak değiştirin.
+
+```sql
+insert into public.institution_members (user_id, institution_id)
+select '<auth-kullanici-uuid>'::uuid, id
+from public.institutions
+where routing_key = 'metropolitan'
+on conflict do nothing;
+```
+
+Bildirim, takip, harita ve karne uçları bu dalda gerçek veriyi kullanır. Fotoğraf yükleme ve görüntüleme özel Supabase Storage üzerinden çalışır. Expo ekranları ve fiziksel telefon kabul testi Sude’nin entegrasyon aşamasındadır.
+
+### Mobil uygulamayı çalıştırma
+
+Telefonda Expo Go uygulaması kurulu olmalı. Telefon ve API'yi çalıştıran bilgisayar aynı ağda olmalı. Komutlar `apps/mobile` içinde çalıştırılır.
+
+```bash
+npm ci
+```
+
+`apps/mobile/.env.local` dosyasını oluşturup tek satır yazın. Adres sır değildir, ama her bilgisayarda değişir. Dosya git'e girmez.
+
+```text
+EXPO_PUBLIC_API_URL=http://<API-bilgisayarinin-ip-adresi>:<port>
+```
+
+```bash
+npx expo start --clear
+```
+
+Terminaldeki QR kodunu Expo Go ile okutun. Önce **Bağlantı** sekmesinde **Bağlantıyı dene** düğmesini kullanın. Başarılı olursa **Test bildirimi gönder** takip kodu döndürür. Kod, Takip sekmesinde sorgulanabilir. Kontroller için `npm run typecheck` kullanılır.
+
+#### Fiziksel telefon testi (iPhone, Expo Go)
+
+- [x] **Bağlantıyı dene** HTTP 200 döndürdü (172 ms, 3 bölge).
+- [x] Harita sekmesi üç bölgeyi listeler ve üçünde **Yetersiz veri** yazar. Bölgeler şimdilik liste halindedir.
+- [x] Karne sekmesi Örnek Büyükşehir Belediyesi için 2/2 (%100), Örnek İlçe Belediyesi için **Bu dönemde önlem kaydı yok** gösterir.
+- [x] **Test bildirimi gönder** HTTP 201 ve bir takip kodu döndürdü.
+- [ ] Takip sekmesinde bu kodla durum sorgulama.
+- [ ] **Aynı gönderimi tekrar dene** ile ikinci kayıt oluşmadığının kontrolü.
+- [ ] Gönderilen kaydın `/kurum` panelinde tek kayıt olarak görünmesi.
+- [ ] Bildir sekmesinde haritaya dokunarak konum seçimi ve işaretçinin başka bir dokunuşla taşınması.
+- [ ] Gelecekteki ve bir yıldan eski zamanda alanın altında neden görünmesi, gönderimin kapalı kalması.
+- [ ] Bildir sekmesinden gönderimde takip kodunun görünmesi, kodun Takip sekmesinde **İncelemede** olarak sorgulanması ve panelde tek kayıt görünmesi.
+- [ ] Gönder düğmesine hızlı iki kez dokunulduğunda tek kayıt oluşması.
+- [ ] Harita sekmesinde üç bölgenin renkli alan olarak çizilmesi, lejantın görünmesi ve bir bölgeye dokununca adının ve bandının yazılması.
+- [ ] Bildir sekmesinde fotoğraf seçme, önizleme ve kaldırma.
+- [ ] Fotoğraflı gönderim (`:3000` adresinde): takip kodunun görünmesi ve Büyükşehir görevlisinin panelde fotoğrafı açabilmesi.
+- [ ] Fotoğraflı gönderim ağ hatasında **Tekrar dene** ile tek kayıt oluşması.
 
 ## Veri modeli ve iş kuralları
 
 | Kayıt | Temel alanlar ve ilişki |
 | --- | --- |
-| `institutions` ve `institution_members` | Kurum adı ve yönlendirme anahtarı. Kurum üyeliğinde Supabase Auth kullanıcı kimliği ve kurum kimliği. |
-| `map_areas` | Pilot bölge kimliği, adı ve sabit sınır geometrisi. |
-| `reports` | Bildirim kimliği, benzersiz gönderim kimliği, kurum kimliği, varsa bölge kimliği, yer türü, özel konum, olay zamanı, gönderim zamanı, isteğe bağlı açıklama ve özel fotoğraf anahtarı. Bir bildirim en fazla bir önleme bağlanır. |
-| `tracking_codes` | Bildirim kimliği ve takip kodunun benzersiz özeti. Sunucu tarafından erişilen ayrı kayıt. |
-| `measures` | Kurum kimliği, önlem başlığı, sorumlu birim, hedef tarih, açılış zamanı, varsa tamamlanma zamanı ve kullanıcıya gösterilecek sonuç özeti. Birden fazla bildirim aynı önleme bağlanabilir. |
-| `public_map_snapshots` | Yayımlanan dönem, bölge kimliği ve yoğunluk bandı. Haftalık özet, dönemdeki kurgu bildirimlerden hesaplanır. |
+| `institutions`, `institution_members` | Kurum adı ve yönlendirme anahtarı. Üyelikte Supabase Auth kullanıcı kimliği ve kurum kimliği. |
+| `map_areas` | Sabit bölge kimliği, adı, sınır geometrisi ve kurum ataması. |
+| `reports` | Benzersiz gönderim kimliği, kurum, varsa bölge, özel konum, olay zamanı, gönderim zamanı, isteğe bağlı açıklama ve özel fotoğraf anahtarı. Bir bildirim en fazla bir önleme bağlıdır. |
+| `tracking_codes` | Bildirim kimliği ve takip kodunun benzersiz özeti. Sunucu erişir. |
+| `measures` | Kurum, başlık, sorumlu birim, hedef tarih, açılış zamanı, varsa tamamlanma zamanı ve paylaşılabilir sonuç. Bir önlem birden fazla bildirime bağlanabilir. |
+| `report_inbox_events` | Kurum kimliği ve güncellenme zamanı. Realtime ile gelen kutusunu yeniden sorgulatır. |
+| `public_map_snapshots` | Yayımlanan dönem, bölge ve yoğunluk bandı. |
 
-- **Yönlendirme.** Sunucu konumu pilot bölgelerle eşleştirir. Pilot içindeki durak bildirimi ulaşım birimine, sokak bildirimi belediye birimine gider. Eşleşmeyen bildirim belediyenin inceleme kuyruğuna düşer. Kurum ataması sunucuda yapılır.
-- **Durumlar.** Önleme bağlı olmayan bildirim **İncelemede**, açık önleme bağlı bildirim **Önlem planlandı**, tamamlanmış önleme bağlı bildirim **Tamamlandı** görünür. Tamamlanma zamanı sunucuda bir kez yazılır. Bildirim ile önlem aynı kuruma ait olmalıdır.
-- **Yoğunluk hesabı.** İstanbul saatine göre kapanmış takvim haftasında, gönderim tarihine göre her sabit bölgedeki benzersiz bildirimleri say. Demo eşiği **5**. Bantlar `5–9`, `10–19` ve `20+`. Eşik altındaki bölgelerin görünümü **Yetersiz veri**. Hafta özeti yayımlandığında mobil harita o özeti kullanır.
-- **Karne hesabı.** Son 30 günde açılmış benzersiz önlemlerin kaçının bugün itibarıyla tamamlandığını hesapla. Formül `tamamlanan / açılan`. Payda sıfırsa **Bu dönemde önlem kaydı yok** göster. Dönem ve zamanlar ekranda İstanbul saatiyle sunulur.
+**Konuma göre yönlendirme.** Sunucu bildirimin koordinatını pilot bölge sınırlarıyla eşleştirir. Sınır üzerindeki noktalar eşleşmeye dahildir. Bu dağılım demo amaçlıdır. Gerçek pilotta bölgelerin ve sorumlu birimlerin eşlemesini katılımcı kurumlar belirler.
+
+| Demo konumu | Yönlendirilen örnek kurum |
+| --- | --- |
+| Çarşı ve çevresi | Örnek Büyükşehir Belediyesi |
+| Moda, Fenerbahçe | Örnek İlçe Belediyesi |
+| Pilot bölgelerin dışı | Örnek İlçe Belediyesi inceleme kuyruğu |
+
+**Durumlar.** Önleme bağlı olmayan bildirim **İncelemede**, açık önleme bağlı bildirim **Önlem planlandı**, tamamlanmış önleme bağlı bildirim **Tamamlandı** görünür. Bildirim ve önlem aynı kuruma ait olmalıdır. Tamamlanma zamanı sunucuda bir kez yazılır. Sonraki tamamlanma istekleri kayıtlı sonucu korur.
+
+**Yoğunluk hesabı.** İstanbul saatine göre son kapanmış pazartesi–pazar haftasında, gönderim tarihine göre her bölgedeki benzersiz bildirimler sayılır. Hafta kapandıktan sonraki ilk harita isteği bölge bantlarını kaydeder. Demo eşiği 5 ve bantlar `5–9`, `10–19`, `20+` şeklindedir. Eşik altındaki bölge **Yetersiz veri** görünür. Yeni bildirimler bir sonraki yayımlanan özetin hesabına katılır.
+
+**Karne hesabı.** İstanbul saatine göre bugün dahil son 30 takvim gününde açılan benzersiz önlemlerin kaçının sorgu anında tamamlandığı hesaplanır. Oran `tamamlanan / açılan` formülüyle gösterilir. Payda sıfırsa **Bu dönemde önlem kaydı yok** görünür. Panel dönem ve zamanları İstanbul saatiyle gösterir.
 
 ### API sözleşmesi
 
-Alan adları uygulama başlangıcında mobil ve web arasında ortaklaştırılır. Aşağıdaki sözleşme ilk entegrasyon için yeterlidir.
-
 | İşlem | İstek ve yanıt |
 | --- | --- |
-| `POST /api/reports` | Konum, olay zamanı, yer türü, gönderim kimliği ve isteğe bağlı açıklama/fotoğraf alır. Başarılı kayıt yanıtı, telefonda gösterilecek takip kodunu içerir. Çift dokunma ve ağ tekrarları aynı gönderim olarak ele alınır. |
-| `GET /api/map` | Son yayımlanan haftayı, bölge geometrisini ve yoğunluk bandını döndürür. |
-| `POST /api/track` | Takip kodunu istek gövdesinden alır. Kurum adı, durum, varsa hedef ve tamamlanma tarihleri ile paylaşılabilir önlem özetini döndürür. |
-| `GET /api/scorecard` | Kurum, dönem, tamamlanan önlem, toplam önlem ve oran alanlarını döndürür. |
-| Kurum API’si | Kurum oturumuyla gelen kutusunu ve bildirim detayını okur. Önlem açma, mevcut önleme bağlama ve tamamlama işlemlerinde kurum üyeliğini yeniden denetler. |
+| `POST /api/reports` | Fotoğrafsız JSON veya fotoğraflı `multipart/form-data` kabul eder. Başarılı yanıtta `trackingCode` ve `created` bulunur. İlk kayıt `201`, aynı gönderim tekrarı aynı kodla `200` döner. |
+| `GET /api/map` | Yayımlanan haftanın dönemini, bölge geometrilerini ve yoğunluk bantlarını döndürür. |
+| `POST /api/track` | Gövdede `trackingCode` alır. Kurum adını, durumu, varsa önlemin başlığını, sorumlu birimini, hedef ve tamamlanma tarihlerini ve paylaşılabilir sonucunu döndürür. |
+| `GET /api/scorecard` | Kurum, dönem, tamamlanan önlem sayısı, toplam ve oran döndürür. |
+| `GET /api/institution/me` | Kurum oturumuyla görevlinin e-postasını, kurumunu (`id`, `name`, `kind`: `metropolitan` veya `district`) ve pilot bölge adlarını döndürür. |
+| `GET /api/institution/reports` | Kurum oturumuyla gelen kutusunu yeniden eskiye sıralar. Her sayfa en fazla 50 kayıt içerir. Sonraki sayfa, yanıttaki `nextCursor` değeri `cursor` olarak gönderilerek alınır. |
+| `GET /api/institution/reports/:id` | Kurum oturumuyla bildirim detayını, `hasPhoto` bilgisini ve bağlanabilecek aynı kurum önlemlerini döndürür. |
+| `GET /api/institution/reports/:id/photo` | Yetkili kurum oturumuna 60 saniye geçerli `signedUrl` döndürür. Fotoğrafı olmayan veya oturuma ait kurumda görünmeyen bildirim için `404` döner. |
+| `POST /api/institution/reports/:id/measure` | `action` alanıyla `open`, `link` veya `complete` işlemini yapar. Kurum üyeliği işlem sırasında veritabanında yeniden denetlenir. |
+
+Mobil yanıt tipleri `apps/web/src/lib/contract.ts`, kurum paneli tipleri `apps/web/src/lib/institution-contract.ts` içindedir.
+
+#### Sude için fotoğraflı gönderim
+
+Fotoğrafsız JSON gövdesinde `submissionId`, `location.latitude`, `location.longitude`, `occurredAt` ve isteğe bağlı `description` kullanılır. Fotoğraf seçildiğinde aynı adrese FormData gönderilir.
+
+| FormData alanı | Değer |
+| --- | --- |
+| `submissionId` | Her yeni bildirim için rastgele UUID |
+| `latitude`, `longitude` | Ondalık koordinatların metin karşılığı. İkisi üst düzey form alanıdır. |
+| `occurredAt` | Saat dilimi içeren ISO 8601 metni |
+| `description` | İsteğe bağlı metin, en çok 2000 karakter |
+| `photo` | JPEG, PNG veya WebP dosyası. En fazla bir görsel, 4 MiB ve 24 milyon piksel. |
+
+`fetch` çağrısında multipart sınırını üretebilmesi için `Content-Type` başlığını FormData’ya bırakın. Ağ tekrarında aynı `submissionId` ve aynı dosyayı kullanın. Başarı yanıtı JSON biçimiyle aynıdır. Geçersiz görsel `400`, boyut aşımı `413` döner. Sunucu fotoğrafın yönünü düzeltip üst verisini kaldırarak JPEG olarak özel depoya yazar.
 
 ### Erişim ve gizlilik
 
-- **Kamu ekranları** yalnızca yayımlanmış harita özeti ve kurum karnesini okur. Harita bölgesel geometri ve bant, karne kurumsal toplamlar içerir.
-- **Takip kodu ekranı** yalnızca o bildirime bağlı paylaşılabilir sonucu açar. Telefon her gönderim için kriptografik olarak rastgele bir kimlik oluşturur ve ağ tekrarlarında bu kimliği korur. Sunucu gizli bir anahtarla bu kimlikten takip kodunu türetir ve yalnızca kodun özetini saklar. Böylece tekrar deneme aynı kaydı ve kodu döndürür. Kod sorgularına hız sınırı uygula ve geçersiz kod için tek bir genel hata kullan. Kod ile gönderim kimliğini istek gövdesinde taşı ve uygulama kayıtlarında maskele.
-- **Kurum ekranı** kurum yetkisini satır bazında uygular. Tam konum, olay saati, açıklama ve fotoğraf kendi kurumunun yetkili personeline açılır. Realtime kuyruğu ve imzalı fotoğraf bağlantıları aynı erişim kuralına uyar.
-- **Demo ortamı** kurgu kayıtlar ve örnek görseller kullanır. Gerçek pilot tasarlanırken kurum sahipliği, yönlendirme protokolü, veri saklama süresi ve harita toplulaştırmasının gizlilik etkisi ayrıca doğrulanır.
+- **Kamu ekranları**, bölge geometrisini, haftalık yoğunluk bandını ve kurum karnesindeki toplamları gösterir.
+- **Takip kodu**, yalnızca ilgili bildirimin paylaşılabilir durumunu ve sonucunu açar. Telefon, rastgele gönderim UUID’sini ağ tekrarlarında korur. Sunucu takip kodunu bu UUID ve sunucu sırrından türetir ve kodun özetini saklar. Geçersiz kod için genel hata döner. Kod ve gönderim kimliği istek gövdesinde taşınır. Günlüklerde yalnızca maskelenmiş gönderim kimliği yer alır.
+- **Takip sorguları** kaynak başına dakikada 30 istekle sınırlıdır. Vercel’de platformun sağladığı istemci IP’si kullanılır. Başka ortamlarda güvenilir ters vekilin tek doğrulanmış istemci IP’siyle üzerine yazdığı başlık `TRACKING_CLIENT_IP_HEADER` olarak ayarlanabilir. Bir istemci adresi belirlenemediğinde istekler ortak kotayı kullanır.
+- **Kurum kayıtları** RLS ile ilgili kurumun yetkili personeline açılır. Tam konum, olay saati, açıklama ve özel fotoğraf kurum ekranına aittir. Realtime yalnızca kuruma ait bir güncelleme sinyali taşır. Fotoğraf bağlantısı, görevli panelde fotoğrafı açtığında kurum yetkisi kontrol edilerek imzalanır.
+- **Pilot hazırlığında** kurum sahipliği, yönlendirme protokolü, veri saklama süresi ve yoğunluk haritasının gizlilik etkisi, katılımcı kurumlarla birlikte değerlendirilir. Demo için kurgu kayıtlar ve örnek görseller kullanılır.
 
 ## İş bölümü ve 20 saatlik takvim
 
 | Saat | Sude | Barış |
 | --- | --- | --- |
 | 0–2 | Mobil ekran taslakları, Expo kurulumu ve telefondan ilk API denemesi | Next.js ve Supabase kurulumu, iki demo kurum, örnek API yanıtları ve ilk test kaydı |
-| 2–10 | Harita, bildirim, isteğe bağlı fotoğraf, takip ve karne ekranları | Şema ve yetkiler, bildirim kaydı, kuruma yönlendirme, canlı gelen kutusu ve önlem işlemleri |
-| 10–14 | Mobil ekranların gerçek API’ye bağlanması ve gerçek telefon testi | Özel fotoğraf akışı, düzenli harita özeti ve karne hesabı |
-| 14–17 | Birlikte uçtan uca kabul testleri ve hata düzeltmeleri | Kurumlar arası yetki kontrolü ve demo verisinin hazırlanması |
-| 17–20 | Birlikte beş dakikalık sunum ve iki prova | Son saatte son düzeltmeler ve demo yedeği |
+| 2–10 | Yoğunluk haritası, haritadan konum ve tarih/saat seçimi, isteğe bağlı açıklama ve fotoğraf, takip ve karne ekranları | Şema ve yetkiler, bildirim kaydı, konuma göre kuruma yönlendirme, canlı gelen kutusu, önlem işlemleri ve takip sorgusu |
+| 10–14 | Mobil ekranları gerçek API’ye bağlama ve fiziksel telefon testi | Özel fotoğraf akışı, haftalık harita özeti ve karne hesabı |
+| 14–17 | Birlikte uçtan uca kabul testleri ve hata düzeltmeleri | Kurumlar arası yetki kontrolü ve sunum verisinin hazırlanması |
+| 17–20 | Birlikte beş dakikalık sunum ve iki prova | Son düzeltmeler ve demo yedeği |
 
-**İlk kilometre taşı, telefondan gönderilen bir fotoğrafsız bildirimin doğru kurumun web gelen kutusunda görünmesi.** Ardından önlem atama, kodla takip ve karne tamamlanır. Harita ve isteğe bağlı fotoğraf, aynı veri modeline bağlanır.
+**İlk kilometre taşı**, telefondan gönderilen fotoğrafsız bir kamusal alan bildiriminin doğru kurumun web gelen kutusunda görünmesi. Ardından önleme bağlama, takip koduyla sonuç ve kurum karnesi gösterilir.
 
 ## Kabul testleri
 
-- [ ] Kullanıcı hesap açmadan konum ve olay zamanı seçer. Fotoğraflı ve fotoğrafsız iki kurgu bildirim kaydedilebilir ve geçerli bir takip kodu alınır.
-- [ ] Aynı gönderim ağ hatası nedeniyle yeniden denenirse tek kayıt ve aynı takip kodu elde edilir. Bir fotoğraf kaydı başarısız olursa uygulama gönderimin sonucunu açıkça gösterir ve güvenli tekrar deneme sunar.
-- [ ] Durak için açılan kayıt, doğru örnek kurumun panelinde manuel yenileme gerektirmeden görünür. Diğer kurum hesabı kaydı ve fotoğrafı okuyamaz veya değiştiremez.
-- [ ] Kamu haritası kapanmış haftayı ve yoğunluk bandını gösterir. Eşik altındaki bölge **Yetersiz veri** görünür. Yeni kayıt kurum panelinde görünürken harita yayımlanmış haftalık özetini korur.
-- [ ] Görevli sorumlu birim ve hedef tarih girerek önlem açabilir. Bildirim mevcut bir önleme bağlandığında kurum ve önlem ilişkisi doğrulanır.
-- [ ] Geçerli takip kodu, önlem planlandığında ve tamamlandığında doğru bilgileri gösterir. Geçersiz kod genel hata verir. Kamu ve takip yanıtları özel olay alanlarını veya fotoğraf bağlantısını içermez.
-- [ ] Bir önlem tamamlandığında karne payı bir artar. Aynı önlemi tekrar tamamlamaya çalışmak sayacı değiştirmez. Aynı önleme birden çok bildirim bağlanması payda hesabını değiştirmez.
+### Kurumlar arası yetki kontrolü
+
+Yerel Supabase’i başlattıktan sonra depo kökünde pgTAP testini çalıştırın. Test veritabanı işlemini geri alır.
+
+```bash
+supabase test db supabase/tests/database/institution_access.test.sql
+```
+
+HTTP testi için ayrı yerel Supabase’e bağlı web uygulamasını çalıştırın. `apps/web/.env.local` içindeki Supabase URL’si ve anahtarlar, test edilecek web uygulamasıyla aynı yerel veritabanına ait olmalıdır. Her iki adres için de loopback IP kullanın. Örnek komutta web uygulaması 3191 portunda dinler.
+
+```bash
+cd apps/web
+TWOBYTES_TEST_API_URL=http://127.0.0.1:3191 node --env-file=.env.local scripts/check-institution-access.mjs
+```
+
+HTTP testi, kendi oluşturduğu görevli hesabıyla uygulamanın doğru veritabanına bağlı olduğunu denetler. Ardından iki kurum için gelen kutusu, detay, fotoğraf ve önlem işlemlerini kontrol eder. Geçici hesapları, kayıtları ve fotoğrafları test sonunda temizler.
+
+### Sunum verisini hazırlama
+
+Ayrı bir yerel Supabase başlatın. `seed.sql` çalıştıktan sonra, haritayı ilk kez açmadan `supabase status` çıktısındaki yerel veritabanı adresini `DEMO_DB_URL` olarak kullanın.
+
+```bash
+psql "$DEMO_DB_URL" -v ON_ERROR_STOP=1 -f supabase/demo.sql
+```
+
+Betik, son kapanan İstanbul haftasına Çarşı ve çevresi için 12, Moda için 6 ve Fenerbahçe için 2 kurgu bildirim koyar. Bildirimler bölge içinde farklı noktalara, haftanın günlerine ve akşam saatlerine dağılır. Kurgu açıklamalar taşır, bazıları açıklamasızdır. Çarşı'daki iki bildirim tamamlanmış önleme, üçü açık önleme bağlıdır; gelen kutusunda üç durum da görünür. Karne önlemleri saydığı için bu bağlantılar oranı değiştirmez. Haritada sırasıyla **10–19**, **5–9** ve **Yetersiz veri** görünür. Büyükşehir karnesi **1/2** başlar. Başlangıç verisiyle aynı dönemde betik yeniden çalıştırılabilir. Uyumsuz kayıt veya yayımlanmış harita varsa işlem geri alınır.
+
+#### Ortak sunum ortamını (`:3000`, bulut) hazırlama
+
+Bulutta biriken test kayıtları ve önceden yayımlanmış harita özeti `demo.sql` dosyasının kurulumunu durdurur. Önce `reset-demo.mjs` ile temizleyin, sonra `demo.sql` dosyasını uygulayın. Bulut adresi `~/TwoBytes/apps/web/.env.local` içindedir.
+
+Tek komutla (temizlik, sunum verisi ve sonuç özeti):
+
+```bash
+supabase/prepare-demo.sh          # varsayılan: ~/TwoBytes/apps/web/.env.local, yani :3000'in bulut veritabanı
+```
+
+Adımları ayrı ayrı çalıştırmak için:
+
+```bash
+cd apps/web
+node --env-file=.env.local scripts/reset-demo.mjs                                            # yalnızca listeler
+node --env-file=.env.local scripts/reset-demo.mjs --confirm=mygmosguieafmbxhenyn.supabase.co  # temizler
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f ../../supabase/demo.sql
+```
+
+- **Silinenler:** Bütün bildirimler, takip kodları, bildirim fotoğrafları, önlemler ve yayımlanmış harita özetleri. Kurumlar, bölgeler ve görevli hesapları kalır. `--confirm` verilmezse hiçbir şey silinmez; yanlış veritabanını temizlememek için değer hedef sunucunun adıyla aynı olmalıdır.
+- **Zamanlama:** Harita, İstanbul saatine göre son kapanan haftayı gösterir. Sunum verisini sunumun yapılacağı hafta içinde hazırlayın. Pazartesi geçerse iki komutu yeniden çalıştırın.
+- **Prova sonrası:** Prova karneyi 2/2 yapar. Başlangıç durumuna dönmek için aynı iki komutu tekrar çalıştırın.
+
+Provada Çarşı ve çevresinden yeni bir kurgu bildirim gönderin. Büyükşehir hesabıyla bu bildirimi **Çarşı Meydanı aydınlatmasının iyileştirilmesi** önlemine bağlayıp tamamlayın. Karne **2/2** olur. Provadan sonra başlangıç durumunu yeniden göstermek için ayrı bir temiz sunum ortamı hazırlayın.
+
+### Kabul listesi
+
+- [x] Hesapsız API isteği konum ve olay zamanı ile fotoğrafsız kurgu bildirim kaydeder. Aynı gönderimin eşzamanlı tekrarında tek kayıt ve aynı takip kodu elde edilir.
+- [x] Yerel demoda Çarşı ve çevresi Örnek Büyükşehir Belediyesine, Moda ve pilot dışı konumlar Örnek İlçe Belediyesine yönlenir.
+- [x] Yeni kayıt yetkili kurumun panelinde sayfa yenilemeden görünür. Bağlantı kesildiğinde beş saniyelik sorgulama devreye girer. Diğer kurum hesabı kaydı açamaz veya değiştiremez.
+- [x] Görevli başlık, sorumlu birim ve hedef tarih girerek önlem açabilir, aynı kurumun mevcut önlemini bağlayabilir ve tamamlanmayı kaydedebilir. Geçerli kod üç durumu gösterir. Geçersiz kod genel hata döndürür.
+- [ ] Fiziksel telefonda, haritadan konum ve olay zamanı seçilerek fotoğraflı ve fotoğrafsız bildirimler gönderilir. Fotoğraf kaydı başarısız olduğunda arayüz güvenli tekrar deneme sunar. Fotoğrafı ilgili kurum görevlisi açabilir.
+- [x] Yerel API ve Chromium testinde fotoğraf yalnızca yetkili kurum hesabıyla açılır. Aynı fotoğraflı gönderimin tekrarı tek kayda ve aynı takip koduna karşılık gelir.
+- [x] İki kurumun hesaplarıyla diğer kurumun bildirim detayı, özel fotoğrafı ve önlem işlemleri reddedilir. Üyeliği kaldırılan görevlinin erişimi kapanır.
+- [x] Kamu haritası kapanan haftanın yayımlanmış bantlarını gösterir. Eşik altı bölgeler **Yetersiz veri** görünür. Kamu ve takip yanıtlarının alanları, tablodaki paylaşılabilir sözleşmeyle sınırlıdır.
+- [x] Bir önlemi tamamlamak karne payını bir artırır. Tekrar tamamlama sonucu ve sayacı korur. Birden çok bildirimin aynı önleme bağlanması payda hesabını değiştirmez.
+- [x] Sunum betiği karneyi 1/2 ve bölgeleri 10–19, 5–9, Yetersiz veri bantlarıyla hazırlar. Aynı veriye yeniden uygulandığında yeni kopya oluşmaz.
 
 ## Beş dakikalık sunum
 
 | Süre | Akış |
 | --- | --- |
-| 0:00–0:40 | Sorunu anlat. Yolcu bildirim yaptıktan sonra kurumun ne yaptığını nasıl öğrenebilir? |
-| 0:40–2:20 | Sude haritayı gösterir, örnek durak bildirimi gönderir ve kod alır. Barış panelde bildirimi görür, örnek aydınlatma önlemine bağlar ve tamamlanmayı işler. Sude koduyla sonucu açar. |
-| 2:20–3:20 | Kurum karnesinin **1/2 → 2/2** değişimini ve aynı akışın 5.2 ile 16.6 bağlantısını göster. |
-| 3:20–4:45 | İlk müşteri olarak belediye veya ulaşım işletmesinin ilgili birimini anlat. Bir ilçede kurum iş birliğiyle pilot ve kurum paneli için ücretli kullanım hipotezini sun. |
-| 4:45–5:00 | Geçişler için süre payı. |
+| 0:00–0:40 | Kamusal alanda yaşanan bir güvenlik sorununun anonim olarak bildirilmesini ve kurumun verdiği yanıtın izlenmesini anlatın. |
+| 0:40–2:20 | Sude haftalık haritayı gösterir, Çarşı ve çevresinde kurgu bir meydan bildirimi oluşturur ve takip kodu alır. Barış Örnek Büyükşehir Belediyesi panelinde kaydı canlı görür, meydanın aydınlatılması için açılmış önleme bağlar ve tamamlanmayı kaydeder. Sude takip koduyla sonucu açar. |
+| 2:20–3:20 | Karneyi **1/2 → 2/2** olarak gösterin. Kurumun tamamlanan iş kaydını SDG 5.2 ve 16.6 ile ilişkilendirin. |
+| 3:20–4:45 | İlçe ve büyükşehir belediyeleriyle kamu destekli pilotu ve ilgili kurumun saha önlemini nasıl yöneteceğini açıklayın. |
+| 4:45–5:00 | Geçiş süresi. |
 
-Karne demosu için başlangıçta aynı kurumda biri tamamlanmış, biri açık iki önlem bulunur. Yeni bildirim açık önleme bağlanır ve o önlem tamamlanır. Sunumda yeni önlem açma adımı gösterilecekse başlangıçta tek tamamlanmış önlem kullanılır ve oran **1/1 → 1/2 → 2/2** olur.
-
-## Claude Code için başlangıç talimatı
-
-> Bu README’yi MVP uygulama şartnamesi olarak kullan. Depo durumunu kontrol et. Expo mobil uygulamasını, Next.js kurum panelini ve Supabase şemasını önerilen yapıya göre kur. İlk çalışan uçtan uca akış olarak telefondan fotoğrafsız bildirim gönderimini, sunucuda kurum yönlendirmesini ve ilgili kurumun gelen kutusunu tamamla. Ardından önlem atama ve tamamlama, takip kodu, kamu haritası, karne ve özel fotoğraf yüklemesini bağla. Kurgu test verisi oluştur. Kabul testlerinden doğruladıklarını ve gerçek çalıştırma komutlarını README’ye işle.
+Karne demosunda aynı kurumda biri tamamlanmış, biri açık iki önlemle başlayın. Canlı olarak yeni önlem açılacaksa bir tamamlanmış önlemle başlayın ve **1/1 → 1/2 → 2/2** akışını gösterin.
 
 ## Kaynaklar
 
-- Safecity’nin anonim bildirim ve haritalama yaklaşımı ile kurumlara yansıyan önlem örnekleri. [World Justice Project](https://worldjusticeproject.org/news/not-alone-how-app-empowering-women-prevent-gender-based-violence)
-- Türkiye’deki yakın ürün örneği. HatGüven’in sınanacak farkı, kuruma yönlendirme, tarihli önlem, takip kodu ve kamu karnesinin aynı iş akışına bağlanmasıdır. [ABB Mor Haritam](https://www.ankara.bel.tr/haberler/baskentli-kadinlar-icin-mor-haritam-yeniden-kullanimda-18341)
-- Sürdürülebilir Kalkınma Amaçlarının alt hedefleri. [BM Hedef 5](https://sdgs.un.org/goals/goal5) · [BM Hedef 16](https://sdgs.un.org/goals/goal16)
+- Safecity, kamusal alandaki cinsel taciz ve şiddet deneyimlerine ilişkin anonim bildirimleri haritalandırarak yerel sorunları görünür kılıyor. World Justice Project, bu verilerin toplulukların ve kurumların verdiği yanıtlara nasıl katkı sağladığını aktarıyor. [World Justice Project](https://worldjusticeproject.org/news/not-alone-how-app-empowering-women-prevent-gender-based-violence)
+- Ankara Büyükşehir Belediyesinin Mor Haritam uygulaması kadınların kendilerini güvende hissetmedikleri yerleri harita üzerinden belediyeye bildirmesini ve destek hizmetlerine ulaşmasını sağlıyor. [ABB Mor Haritam](https://www.ankara.bel.tr/haberler/baskentli-kadinlar-icin-mor-haritam-yeniden-kullanimda-18341)
 - Teknik dokümantasyon. [Expo harita](https://docs.expo.dev/versions/latest/sdk/map-view/) · [Expo fotoğraf seçimi](https://docs.expo.dev/versions/latest/sdk/imagepicker/) · [Next.js Route Handlers](https://nextjs.org/docs/app/getting-started/route-handlers) · [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security) · [Supabase Storage](https://supabase.com/docs/guides/storage/buckets/fundamentals) · [Supabase Realtime](https://supabase.com/docs/guides/realtime/postgres-changes)
