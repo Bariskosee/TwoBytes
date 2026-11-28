@@ -20,6 +20,30 @@ export function toPolygonCoordinates(boundary: PolygonGeometry): LatLng[] {
   return ring.map(([longitude, latitude]) => ({ latitude, longitude }));
 }
 
+/**
+ * Bölgenin dış sınır köşelerinin ortalaması. Basit dikdörtgen ve dışbükey bölgeler için bölge merkezine denk gelir.
+ * Kapanış köşesi (ilk köşenin tekrarı) ortalamaya katılmaz. Köşe yoksa null döner.
+ */
+export function centroidOf(boundary: PolygonGeometry): LatLng | null {
+  const ring = toPolygonCoordinates(boundary);
+  const first = ring[0];
+  const last = ring[ring.length - 1];
+  const closed = first && last && first.latitude === last.latitude && first.longitude === last.longitude;
+  const points = closed ? ring.slice(0, -1) : ring;
+  if (points.length === 0) return null;
+
+  const sum = points.reduce(
+    (total, point) => ({ latitude: total.latitude + point.latitude, longitude: total.longitude + point.longitude }),
+    { latitude: 0, longitude: 0 },
+  );
+  return { latitude: sum.latitude / points.length, longitude: sum.longitude / points.length };
+}
+
+/** İki konum aynı noktaya (yaklaşık 1 metre içinde) denk mi. */
+export function samePlace(a: LatLng, b: LatLng): boolean {
+  return Math.abs(a.latitude - b.latitude) < 1e-5 && Math.abs(a.longitude - b.longitude) < 1e-5;
+}
+
 /** Bütün bölgeleri kapsayan başlangıç bölgesi. Bölge yoksa verilen yedek değer döner. */
 export function regionFor(boundaries: PolygonGeometry[], fallback: Region): Region {
   const points = boundaries.flatMap((boundary) => toPolygonCoordinates(boundary));

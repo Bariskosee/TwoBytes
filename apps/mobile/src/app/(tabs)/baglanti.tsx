@@ -1,9 +1,9 @@
 import * as Crypto from "expo-crypto";
 import { useState } from "react";
-import { Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { apiBaseUrl, createReport, describeDetail, describeError, getMap } from "@/api/client";
-import { Body, Button, Card, Notice, Screen, Small, Subhead, Title } from "@/components/ui";
-import { colors, font } from "@/theme";
+import { Body, Button, CodeBox, Notice, Screen, Section, Small, Subhead, Tag } from "@/components/ui";
+import { colors, font, radius, space } from "@/theme";
 
 type Ping =
   | { status: "idle" }
@@ -66,14 +66,11 @@ export default function ConnectionScreen() {
   }
 
   return (
-    <Screen>
-      <Title>Bağlantı denemesi</Title>
-      <Body muted>Telefonun sunucuya ulaşıp ulaşamadığını burada denersiniz.</Body>
-
-      <Card>
-        <Subhead>API adresi</Subhead>
+    <Screen intro="Telefonun sunucuya ulaşıp ulaşamadığını burada denersiniz.">
+      <View style={styles.address}>
+        <Text style={styles.addressLabel}>API ADRESİ</Text>
         {baseUrl ? (
-          <Text selectable style={{ ...font.body, color: colors.text }}>
+          <Text selectable style={styles.addressValue}>
             {baseUrl}
           </Text>
         ) : (
@@ -81,11 +78,15 @@ export default function ConnectionScreen() {
             Adres ayarlanmamış. apps/mobile/.env.local dosyasına EXPO_PUBLIC_API_URL ekleyin ve uygulamayı yeniden başlatın.
           </Notice>
         )}
-      </Card>
+      </View>
 
-      <Card>
-        <Subhead>1. Sunucuya ulaş</Subhead>
-        <Body muted>Harita ucunu çağırır. Hiçbir kayıt oluşturmaz.</Body>
+      {/* 1. Güvenli işlem: yalnızca okur. */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Subhead>Bağlantıyı dene</Subhead>
+          <Tag label="Veri yazmaz" />
+        </View>
+        <Body muted>Harita ucunu çağırır ve ne kadar sürdüğünü gösterir.</Body>
         <Button
           label="Bağlantıyı dene"
           onPress={testConnection}
@@ -99,17 +100,22 @@ export default function ConnectionScreen() {
           </Notice>
         )}
         {ping.status === "error" && (
-          <>
+          <Section>
             <Notice kind="error">{ping.message}</Notice>
             {ping.detail ? <Small>Teknik ayrıntı: {ping.detail}</Small> : null}
-          </>
+          </Section>
         )}
-      </Card>
+      </View>
 
-      <Card>
-        <Subhead>2. Test bildirimi gönder</Subhead>
+      {/* 2. Veri yazan işlem: ayrı, kesik kenarlıklı kutuda. */}
+      <View style={[styles.card, styles.writeCard]}>
+        <View style={styles.cardHeader}>
+          <Subhead>Test bildirimi gönder</Subhead>
+          <Tag label="Veri yazar" />
+        </View>
         <Body muted>
-          Test veritabanına tek bir kurgu kayıt yazar ve takip kodunu gösterir. Gerçek bir olayı bildirmez.
+          Sunucunun veritabanına tek bir kurgu kayıt yazar. Kayıt kurum panelinde de görünebilir. Gerçek bir olayı
+          bildirmez.
         </Body>
         <Button
           label="Test bildirimi gönder"
@@ -118,28 +124,42 @@ export default function ConnectionScreen() {
           disabled={!baseUrl}
         />
         {send.status === "success" && (
-          <>
+          <Section>
             <Notice kind="success">
               {send.created ? "Yeni kayıt oluşturuldu" : "Aynı gönderim tekrar edildi, yeni kayıt açılmadı"} (HTTP{" "}
               {send.httpStatus}).
             </Notice>
-            <Text accessibilityLabel={`Takip kodu: ${send.trackingCode}`} selectable style={{ ...font.subhead, fontWeight: "700", color: colors.action }}>
-              {send.trackingCode}
-            </Text>
+            <CodeBox code={send.trackingCode} />
             <Small>Kodu Takip sekmesinde yazarak durumu sorgulayabilirsiniz.</Small>
             <Button label="Aynı gönderimi tekrar dene" variant="secondary" onPress={() => sendTestReport(true)} />
-          </>
+          </Section>
         )}
         {send.status === "error" && (
-          <>
+          <Section>
             <Notice kind="error">{send.message}</Notice>
             {send.detail ? <Small>Teknik ayrıntı: {send.detail}</Small> : null}
             {submissionId && (
               <Button label="Aynı gönderimi tekrar dene" variant="secondary" onPress={() => sendTestReport(true)} />
             )}
-          </>
+          </Section>
         )}
-      </Card>
+      </View>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  address: { gap: space.s1 },
+  addressLabel: { ...font.small, fontWeight: "700", letterSpacing: 1, color: colors.muted },
+  addressValue: { ...font.body, color: colors.text },
+  card: {
+    gap: space.s2,
+    padding: space.s3,
+    backgroundColor: colors.surface,
+    borderRadius: radius.panel,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+  },
+  writeCard: { borderColor: colors.border, borderStyle: "dashed", backgroundColor: colors.infoSurface },
+  cardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.s2 },
+});

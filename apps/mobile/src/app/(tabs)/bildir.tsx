@@ -1,13 +1,15 @@
 import * as Crypto from "expo-crypto";
-import { useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import { Share, StyleSheet, Text, View } from "react-native";
 import { createReport, createReportWithPhoto, describeDetail, describeError } from "@/api/client";
+import { AreaLocationOptions } from "@/components/area-location-options";
 import { EventTimeField } from "@/components/event-time-field";
 import { type Coordinate, LocationPicker } from "@/components/location-picker";
 import { PhotoField, type PickedPhoto } from "@/components/photo-field";
-import { Body, Button, Card, Field, Notice, Screen, Small, Subhead, Title } from "@/components/ui";
+import { Button, CodeBox, Field, FormSection, Notice, Screen, Section, Small } from "@/components/ui";
 import { floorToMinute, toIstanbulIso, validateEventTime } from "@/lib/event-time";
-import { colors, font, space } from "@/theme";
+import { colors, font, radius, space, tabularNums } from "@/theme";
 
 const MAX_DESCRIPTION = 2000;
 
@@ -23,6 +25,29 @@ export default function ReportScreen() {
   const [description, setDescription] = useState("");
   const [photo, setPhoto] = useState<PickedPhoto | null>(null);
   const [outcome, setOutcome] = useState<Outcome>({ status: "idle" });
+  // Harita ekranından bölge seçilerek gelindiyse bölgenin adı. Konum elle değişince silinir.
+  const [areaNote, setAreaNote] = useState<string | null>(null);
+
+  // Harita ekranındaki "Seçili bölgede bildir" düğmesi bölgenin ortasını yaklaşık konum olarak getirir.
+  // Gelen değer doğrulanır. Geçersizse yok sayılır. Kullanıcı konumu haritada veya listeden değiştirebilir.
+  const params = useLocalSearchParams<{ lat?: string; lng?: string; area?: string; n?: string }>();
+  useEffect(() => {
+    if (!params.n || params.lat === undefined || params.lng === undefined) return;
+    const latitude = Number(params.lat);
+    const longitude = Number(params.lng);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+    if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return;
+    if (outcome.status === "success") startOver();
+    setLocation({ latitude, longitude });
+    setAreaNote(typeof params.area === "string" && params.area ? params.area : null);
+    // Yalnızca yeni bir gelişte (n değişince) çalışır.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.n]);
+
+  function changeLocation(next: Coordinate) {
+    setAreaNote(null);
+    setLocation(next);
+  }
 
   // Aynı anda ikinci dokunuşu engeller. State güncellemesi bir sonraki çizimde görünür, ref anında.
   const inFlight = useRef(false);
@@ -33,6 +58,11 @@ export default function ReportScreen() {
   const timeError = validateEventTime(occurredAt, Date.now());
   const submitting = outcome.status === "submitting";
   const canSubmit = location !== null && timeError === null && !submitting;
+
+  // Gönder düğmesinin hemen üstünde gösterilen eksikler.
+  const missing: string[] = [];
+  if (location === null) missing.push("Yer seçilmedi.");
+  if (timeError !== null) missing.push(`Zaman: ${timeError}`);
 
   async function submit() {
     if (inFlight.current || !location) return;
@@ -77,6 +107,7 @@ export default function ReportScreen() {
 
   function startOver() {
     attempt.current = null;
+    setAreaNote(null);
     setLocation(null);
     setOccurredAt(floorToMinute(new Date()));
     setDescription("");
@@ -84,98 +115,113 @@ export default function ReportScreen() {
     setOutcome({ status: "idle" });
   }
 
+  // Sistem paylaşım sayfası kodu kopyalama, not alma ve mesajla gönderme seçenekleriyle açılır.
+  async function shareCode(code: string) {
+    try {
+      await Share.share({ message: `Takip kodum: ${code}` });
+    } catch {
+      // Paylaşım sayfası açılamadıysa kod ekranda seçilebilir metin olarak kalır.
+    }
+  }
+
   if (outcome.status === "success") {
     return (
-      <Screen>
-        <Title>Bildirim alındı</Title>
+      <Screen intro="Kodu saklayın. Bildiriminizin durumunu bu kodla görürsünüz.">
         <Notice kind={outcome.created ? "success" : "info"}>
           {outcome.created
             ? "Bildiriminiz kaydedildi."
             : "Bu gönderim daha önce kaydedilmişti. Yeni kayıt açılmadı."}
         </Notice>
-        <Card>
-          <Subhead>Takip kodunuz</Subhead>
-          <Text
-            selectable
-            accessibilityLabel={`Takip kodunuz: ${outcome.trackingCode}`}
-            style={styles.code}
-          >
-            {outcome.trackingCode}
-          </Text>
-          <Body muted>
-            Bu kodu saklayın. Bildiriminizin durumunu Takip sekmesinde bu kodla görebilirsiniz. Kodu kopyalamak için
-            uzun basın.
-          </Body>
-        </Card>
-        <Button label="Yeni bildirim" variant="secondary" onPress={startOver} />
+
+        <Section>
+          <CodeBox code={outcome.trackingCode} />
+          <Small>Kodu kopyalamak için uzun basabilir veya aşağıdaki düğmeyi kullanabilirsiniz.</Small>
+          <Button label="Kodu kopyala veya paylaş" onPress={() => shareCode(outcome.trackingCode)} />
+        </Section>
+
+        <Section>
+          <Button label="Takip sekmesine git" variant="secondary" onPress={() => router.navigate("/takip")} />
+          <Button label="Yeni bildirim" variant="secondary" onPress={startOver} />
+        </Section>
       </Screen>
     );
   }
 
   return (
-    <Screen>
-      <Title>Bildirim oluştur</Title>
-      <Body muted>Kimlik bilgisi paylaşmadan, hesap açmadan bildirebilirsiniz.</Body>
+    <Screen intro="Yeri ve zamanı seçin. Açıklama ve fotoğraf isteğe bağlıdır.">
+      <FormSection title="1. Yer">
+        {areaNote ? (
+          <Notice kind="info">
+            {areaNote} bölgesinin ortası yaklaşık yer olarak alındı. Haritada veya bölge listesinde değiştirebilirsiniz.
+          </Notice>
+        ) : null}
+        <LocationPicker value={location} onChange={changeLocation} />
+        <AreaLocationOptions value={location} onChange={changeLocation} />
+      </FormSection>
 
-      <Card>
-        <Subhead>1. Olayın yeri</Subhead>
-        <Body muted>Haritaya dokunarak yeri seçin. Başka bir yere dokunursanız işaretçi oraya taşınır.</Body>
-        <LocationPicker value={location} onChange={setLocation} />
-        <Text accessibilityLiveRegion="polite" style={styles.coords}>
-          {location
-            ? `Seçilen konum: ${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}`
-            : "Henüz konum seçilmedi."}
-        </Text>
-        <Small>Sayfayı kaydırmak için haritanın dışına dokunarak sürükleyin.</Small>
-      </Card>
-
-      <Card>
-        <Subhead>2. Olayın zamanı</Subhead>
+      <FormSection title="2. Zaman">
         <EventTimeField value={occurredAt} onChange={setOccurredAt} error={timeError} />
-      </Card>
+      </FormSection>
 
-      <Field
-        label="3. Açıklama (isteğe bağlı)"
-        hint={`En fazla ${MAX_DESCRIPTION} karakter.`}
-        value={description}
-        onChangeText={setDescription}
-        maxLength={MAX_DESCRIPTION}
-        multiline
-      />
-      <View style={styles.counter}>
-        <Text style={styles.counterText}>
-          {description.length} / {MAX_DESCRIPTION}
-        </Text>
-      </View>
-
-      <Card>
-        <Subhead>4. Fotoğraf (isteğe bağlı)</Subhead>
+      <FormSection title="3. Ek bilgi">
+        <Field
+          label="Olayı kısaca anlatın"
+          hint="Kimlik veya iletişim bilgisi yazmayın."
+          value={description}
+          onChangeText={setDescription}
+          maxLength={MAX_DESCRIPTION}
+          multiline
+        />
+        <View style={styles.counter}>
+          <Text style={styles.counterText}>
+            {description.length} / {MAX_DESCRIPTION}
+          </Text>
+        </View>
         <PhotoField value={photo} onChange={setPhoto} disabled={submitting} />
-      </Card>
+      </FormSection>
 
-      {outcome.status === "error" && (
-        <>
-          <Notice kind="error">{outcome.message}</Notice>
-          {outcome.detail ? <Small>Teknik ayrıntı: {outcome.detail}</Small> : null}
-          <Small>Tekrar denerseniz aynı bildirim gönderilir. Tek kayıt oluşur.</Small>
-        </>
-      )}
+      <Section>
+        {missing.length > 0 && !submitting && (
+          <View accessibilityLiveRegion="polite" style={styles.missing}>
+            <Text style={styles.missingTitle}>Göndermek için eksik:</Text>
+            {missing.map((item) => (
+              <Text key={item} style={styles.missingItem}>
+                {item}
+              </Text>
+            ))}
+          </View>
+        )}
 
-      <Button
-        label={outcome.status === "error" ? "Tekrar dene" : "Bildirimi gönder"}
-        onPress={submit}
-        loading={submitting}
-        disabled={!canSubmit && !submitting}
-      />
-      {!location && <Small>Haritadan konum seçince gönderim açılır.</Small>}
-      {location && timeError && <Small>Zamanı düzeltince gönderim açılır.</Small>}
+        {outcome.status === "error" && (
+          <>
+            <Notice kind="error">{outcome.message}</Notice>
+            {outcome.detail ? <Small>Teknik ayrıntı: {outcome.detail}</Small> : null}
+            <Small>Girdiğiniz bilgiler korundu. Tekrar denerseniz aynı bildirim gönderilir, tek kayıt oluşur.</Small>
+          </>
+        )}
+
+        <Button
+          label={outcome.status === "error" ? "Tekrar dene" : "Bildirimi gönder"}
+          onPress={submit}
+          loading={submitting}
+          disabled={!canSubmit && !submitting}
+        />
+      </Section>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  coords: { ...font.body, color: colors.text },
-  counter: { alignItems: "flex-end", marginTop: -space.s2 },
-  counterText: { ...font.small, color: colors.muted },
-  code: { ...font.title, fontWeight: "700", color: colors.action, letterSpacing: 1 },
+  counter: { alignItems: "flex-end", marginTop: -space.s1 },
+  counterText: { ...font.small, ...tabularNums, color: colors.muted },
+  missing: {
+    gap: 2,
+    padding: space.s3,
+    backgroundColor: colors.infoSurface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.control,
+  },
+  missingTitle: { ...font.small, fontWeight: "700", color: colors.text },
+  missingItem: { ...font.body, color: colors.text },
 });
