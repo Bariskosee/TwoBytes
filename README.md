@@ -21,6 +21,7 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `baris/fix-mobile-photo-upload`.** Mobilde fotoğraflı gönderim "Sunucuya ulaşılamadı" hatası veriyordu ve istek ağa hiç çıkmıyordu. Sebep: Expo 58 global `fetch` yerine `expo/fetch` kuruyor; bu uygulama FormData'daki React Native `{ uri, name, type }` dosya parçasını desteklemiyor. `apps/mobile/.env` içinde `EXPO_PUBLIC_USE_RN_FETCH=1` ile React Native `fetch` kullanılıyor. Sude için: `git pull` sonrası Expo'yu `npx expo start --clear` ile yeniden başlatın. iOS simülatöründe Maestro ile doğrulandı: fotoğrafsız ve fotoğraflı bildirim, Büyükşehir'e yönlendirme, takip (İncelemede, Önlem planlandı, Tamamlandı), panelde önlem bağlama ve tamamlama, karne 1/2'den 2/2'ye.
 - **2026-11-28, `baris/demo-acceptance`.** Sude'nin `sude/mobile-setup` dalı (Expo uygulaması, `apps/mobile`) birleştirildi. Mobil adres: `EXPO_PUBLIC_API_URL=http://172.20.10.4:3000`.
 - **2026-11-28, `baris/demo-acceptance`.** Kurum panelinin sol altındaki Next.js geliştirme simgesi (`N`) gizlendi: `next.config.ts` içinde `devIndicators: false`.
 - **2026-11-28, `baris/demo-acceptance`.** `supabase/prepare-demo.sh` eklendi. Sunum ortamını tek komutla 1/2 başlangıcına döndürür ve harita ile karneyi özetler. Provadan sonra bunu çalıştırmak yeterli.
