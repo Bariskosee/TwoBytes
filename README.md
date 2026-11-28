@@ -15,16 +15,24 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 | Haftalık yoğunluk haritası ve gerçek kurum karnesi | ✅ Bulutta doğrulandı | Barış |
 | Kurumlar arası yetki kontrolü | ✅ 50 pgTAP testi ve iki kurumla HTTP testi geçti | Barış |
 | Sunum verisi ve 1/2 → 2/2 provası | ✅ Bulut sunum ortamı (`:3000`) hazır, prova bekleniyor | Barış |
-| Expo ve mobil ekranlar | 🟡 Geliştirme sürüyor | Sude |
+| Expo iskeleti, ekran taslakları ve telefondan ilk API denemesi | 🟡 iPhone'da Expo Go ile çalışıyor. Takip sorgusu, tekrar gönderim ve panel kontrolü bekliyor | Sude |
+| Bildir ekranı: haritadan konum, tarih ve saat seçimi, açıklama, isteğe bağlı fotoğraf ve gönderim | 🟡 Kodlandı, iPhone'da doğrulanacak. Fotoğraflı gönderim yalnızca Storage açık API'de denenebilir | Sude |
+| Harita ekranında bölge yoğunluk katmanı ve lejant | 🟡 Kodlandı, iPhone'da doğrulanacak | Sude |
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `baris/demo-acceptance`.** Sude'nin `sude/mobile-setup` dalı (Expo uygulaması, `apps/mobile`) birleştirildi. Mobil adres: `EXPO_PUBLIC_API_URL=http://172.20.10.4:3000`.
 - **2026-11-28, `baris/demo-acceptance`.** Kurum panelinin sol altındaki Next.js geliştirme simgesi (`N`) gizlendi: `next.config.ts` içinde `devIndicators: false`.
 - **2026-11-28, `baris/demo-acceptance`.** `supabase/prepare-demo.sh` eklendi. Sunum ortamını tek komutla 1/2 başlangıcına döndürür ve harita ile karneyi özetler. Provadan sonra bunu çalıştırmak yeterli.
 - **2026-11-28, `baris/demo-acceptance`.** Sunum kayıtları gerçekçi hale getirildi: farklı konumlar, haftaya ve akşam saatlerine dağılmış zamanlar, kurgu açıklamalar ve Çarşı'da önleme bağlı kayıtlar. Harita bantları (10–19, 5–9, Yetersiz veri) ve karne (1/2) aynı kaldı.
 - **2026-11-28, `baris/demo-acceptance`.** Ortak sunum ortamı (`:3000`, bulut) hazırlandı. Eski test bildirimleri silindi. Harita Çarşı ve çevresi **10–19**, Moda **5–9**, Fenerbahçe **Yetersiz veri** gösteriyor. Büyükşehir karnesi **1/2**. Açık önlem: **Çarşı Meydanı aydınlatmasının iyileştirilmesi**. Sude için: provada bildirimi Çarşı ve çevresinden gönderin. Provadan sonra ortam aynı komutlarla 1/2 başlangıcına döndürülecek.
 - **2026-11-28, `baris/demo-acceptance`.** Ortak sunum ortamını temizleyen `apps/web/scripts/reset-demo.mjs` eklendi; `demo.sql` artık bulutta da uygulanabiliyor. HTTP yetki testi `GET /api/institution/me` ucunu da kapsıyor. pgTAP testleri bulutta da geçti (50/50, işlem geri alınarak). Dal, panel yenilemesinin üstüne taşındı.
 - **2026-11-28, `baris/demo-acceptance`.** Kurumlar arası yetki regresyon testleri ve isteğe bağlı `supabase/demo.sql` eklendi. `:3191` ortamında erişim ayrımı, haftalık harita bantları ve karnenin 1/2 → 2/2 provası doğrulandı. Sude’nin ortak sunum API adresi `:3000`.
+- **2026-11-28, `sude/mobile-setup`.** Harita sekmesi artık bölgeleri haritada renkli alanlar olarak gösterir ve lejantta dönem ile **Bildirim yoğunluğu** etiketi bulunur. Bölgeye dokunmak onu seçer. **Yetersiz veri** bölgeleri kesik çizgiyle gösterilir ve liste altta durur. Bildir sekmesine isteğe bağlı tek fotoğraf eklendi. Fotoğraf kütüphaneden seçilir, 2048 piksele küçültülür ve JPEG'e çevrilir. Fotoğraflı gönderim `POST /api/reports` adresine `multipart/form-data` ile gider. Alanlar `submissionId`, `latitude`, `longitude`, `occurredAt`, `description` ve `photo`. Karne sekmesine doluluk çubuğu eklendi. Yeni mobil paketler: `expo-image-picker` ve `expo-image-manipulator`. Barış için: API veya `contract.ts` değişikliği yok. Fotoğraflı gönderim `:3187` adresinde Storage olmadığı için HTTP 503 döndürür. Fotoğraf testi `:3000` adresinde yapılmalı.
+- **2026-11-28, `sude/mobile-setup`.** Bildir ekranından fotoğrafsız bildirim gönderilebiliyor. Kullanıcı haritaya dokunarak yeri seçer, işaretçi son dokunulan yere taşınır ve konum izni istenmez. Olay tarihi ve saati İstanbul saatiyle seçilir. Gelecekteki veya bir yıldan eski zaman için alanın altında neden gösterilir. Gönderim `POST /api/reports` JSON gövdesini kullanır ve başarıda takip kodunu gösterir. Çift dokunma ve ağ tekrarında aynı `submissionId` korunur. Form içeriği değişirse yeni `submissionId` üretilir. Yeni mobil paketler: `react-native-maps`, `@react-native-community/datetimepicker`, `react-dom` (npm bağımlılık çakışması için `react` ile aynı sürüme sabitlendi). Barış için: API veya `contract.ts` değişikliği yok. `occurredAt` değeri `+03:00` ofsetli ISO metni olarak gönderilir.
+- **2026-11-28, `sude/mobile-setup`.** iPhone'da Expo Go ile ilk fiziksel cihaz testi yapıldı. Bağlantı denemesi, Harita, Karne ve test bildirimi gönderimi çalıştı. Takip sorgusu, aynı gönderimin tekrarı ve panelde tek kayıt kontrolü beklemede. Ayrıntılar "Mobil uygulamayı çalıştırma" bölümündeki "Fiziksel telefon testi" listesinde. Barış için: yeni bir istek yok.
+- **2026-11-28, `sude/mobile-setup`.** Mobil hata kutuları artık kısa teknik ayrıntı gösterir (örn. `GET /api/map · HTTP 503 · server_error`). Mobil `contract.ts` kopyası Barış'ın güncel dosyasıyla eşitlendi. Barış için: fiziksel telefonda `:3187` adresinde `GET /api/map` ve `GET /api/scorecard` HTTP 503 `server_error` döndürüyor. `:3000` adresinde ikisi de 200 dönüyor. Takip ucu `:3187` adresinde çalışıyor.
+- **2026-11-28, `sude/mobile-setup`.** `apps/mobile` altında Expo (SDK 58) ve Expo Router iskeleti eklendi. Beş sekme var: Harita, Bildir, Takip, Karne ve Bağlantı. Harita, Karne ve Takip ekranları API'den okur. Bildir ekranı taslaktır ve gönderim düğmesi kapalıdır. Bağlantı sekmesi sunucuya ulaşmayı ve kurgu bir bildirim göndermeyi dener. `apps/web/src/lib/contract.ts` dosyası `apps/mobile/src/api/contract.ts` olarak birebir kopyalandı. Web tarafında değişiklik yok. Barış için: `contract.ts` değişirse mobil kopyası da güncellenmeli. Mobil, API adresini `EXPO_PUBLIC_API_URL` ile okur. Kurulum adımları aşağıdaki "Mobil uygulamayı çalıştırma" bölümünde.
 - **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli yenilendi. Başlıkta oturumdaki kurumun adı, **Büyükşehir** veya **İlçe** rozeti ve görevlinin e-postası görünüyor. İki kurumun ayrı renk teması var ve tarayıcı sekmesinde kurum adı yazıyor. Gelen kutusunda durum sayaçları ve filtresi var. Satırlarda bölge adı, olay ve bildirim zamanı görünüyor. Canlı gelen bildirim **Yeni** etiketi alıyor. Detayda bölge adı ve **Haritada aç** bağlantısı var. Yeni uç: `GET /api/institution/me`.
 - **2026-11-28, `baris/report-inbox-measures`.** Kurum paneli IP adresiyle açılınca "Oturum denetleniyor…" yazısında kalıyordu. Next.js 16 geliştirme sunucusu `localhost` dışındaki adreslerden gelen geliştirme kaynaklarını engelliyordu. `next.config.ts` içinde `allowedDevOrigins: ["172.20.10.*"]` eklendi. Hotspot başka bir aralık verirse bu listeye eklenmeli.
 - **2026-11-28, `baris/report-inbox-measures`.** `.env.example` içindeki `SUPABASE_DB_URL` örneği, projenin gerçek session pooler adresine (`aws-1-eu-central-1.pooler.supabase.com`) düzeltildi.
@@ -146,6 +154,44 @@ on conflict do nothing;
 ```
 
 Bildirim, takip, harita ve karne uçları bu dalda gerçek veriyi kullanır. Fotoğraf yükleme ve görüntüleme özel Supabase Storage üzerinden çalışır. Expo ekranları ve fiziksel telefon kabul testi Sude’nin entegrasyon aşamasındadır.
+
+### Mobil uygulamayı çalıştırma
+
+Telefonda Expo Go uygulaması kurulu olmalı. Telefon ve API'yi çalıştıran bilgisayar aynı ağda olmalı. Komutlar `apps/mobile` içinde çalıştırılır.
+
+```bash
+npm ci
+```
+
+`apps/mobile/.env.local` dosyasını oluşturup tek satır yazın. Adres sır değildir, ama her bilgisayarda değişir. Dosya git'e girmez.
+
+```text
+EXPO_PUBLIC_API_URL=http://<API-bilgisayarinin-ip-adresi>:<port>
+```
+
+```bash
+npx expo start --clear
+```
+
+Terminaldeki QR kodunu Expo Go ile okutun. Önce **Bağlantı** sekmesinde **Bağlantıyı dene** düğmesini kullanın. Başarılı olursa **Test bildirimi gönder** takip kodu döndürür. Kod, Takip sekmesinde sorgulanabilir. Kontroller için `npm run typecheck` kullanılır.
+
+#### Fiziksel telefon testi (iPhone, Expo Go)
+
+- [x] **Bağlantıyı dene** HTTP 200 döndürdü (172 ms, 3 bölge).
+- [x] Harita sekmesi üç bölgeyi listeler ve üçünde **Yetersiz veri** yazar. Bölgeler şimdilik liste halindedir.
+- [x] Karne sekmesi Örnek Büyükşehir Belediyesi için 2/2 (%100), Örnek İlçe Belediyesi için **Bu dönemde önlem kaydı yok** gösterir.
+- [x] **Test bildirimi gönder** HTTP 201 ve bir takip kodu döndürdü.
+- [ ] Takip sekmesinde bu kodla durum sorgulama.
+- [ ] **Aynı gönderimi tekrar dene** ile ikinci kayıt oluşmadığının kontrolü.
+- [ ] Gönderilen kaydın `/kurum` panelinde tek kayıt olarak görünmesi.
+- [ ] Bildir sekmesinde haritaya dokunarak konum seçimi ve işaretçinin başka bir dokunuşla taşınması.
+- [ ] Gelecekteki ve bir yıldan eski zamanda alanın altında neden görünmesi, gönderimin kapalı kalması.
+- [ ] Bildir sekmesinden gönderimde takip kodunun görünmesi, kodun Takip sekmesinde **İncelemede** olarak sorgulanması ve panelde tek kayıt görünmesi.
+- [ ] Gönder düğmesine hızlı iki kez dokunulduğunda tek kayıt oluşması.
+- [ ] Harita sekmesinde üç bölgenin renkli alan olarak çizilmesi, lejantın görünmesi ve bir bölgeye dokununca adının ve bandının yazılması.
+- [ ] Bildir sekmesinde fotoğraf seçme, önizleme ve kaldırma.
+- [ ] Fotoğraflı gönderim (`:3000` adresinde): takip kodunun görünmesi ve Büyükşehir görevlisinin panelde fotoğrafı açabilmesi.
+- [ ] Fotoğraflı gönderim ağ hatasında **Tekrar dene** ile tek kayıt oluşması.
 
 ## Veri modeli ve iş kuralları
 
