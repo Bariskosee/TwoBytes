@@ -17,7 +17,7 @@ export default function TabLayout() {
     <Tabs screenOptions={screenOptions} tabBar={(props) => <AppTabBar {...props} />}>
       <Tabs.Screen
         name="index"
-        options={{ title: "Harita", headerTitle: "Bildirim yoğunluğu", tabBarAccessibilityLabel: "Yoğunluk haritası" }}
+        options={{ title: "Harita", headerTitle: "Harita", tabBarAccessibilityLabel: "Yoğunluk haritası" }}
       />
       <Tabs.Screen
         name="bildir"

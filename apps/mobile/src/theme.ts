@@ -48,6 +48,28 @@ export const space = { s1: 4, s2: 8, s3: 16, s4: 24, s5: 32, s6: 48 } as const;
 
 export const radius = { control: 8, panel: 12 } as const;
 
+// Yumuşak, mor-gri tonlu gölge (siyah değil). Gölge dış kapsayıcıya verilir, yuvarlatma ve kırpma iç kapsayıcıya.
+// iOS shadow* değerlerini, Android elevation'ı kullanır. Dış kapsayıcının arka planı olmalıdır.
+const shadowTint = "#3B2A66";
+export const elevation = {
+  // Harita kartı gibi yükseltilmiş yüzeyler.
+  card: {
+    shadowColor: shadowTint,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  // Ekranın altındaki işlem kartı: gölge yukarı doğru düşer.
+  bar: {
+    shadowColor: shadowTint,
+    shadowOpacity: 0.14,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: -3 },
+    elevation: 6,
+  },
+} as const;
+
 // 1.25 oranlı ölçek. Metinler sistem yazı tipiyle çizilir ve kullanıcının yazı boyutu ayarıyla büyür.
 export const font = {
   small: { fontSize: 13, lineHeight: 18 },

@@ -15,13 +15,14 @@ Dışarıda, çoğu zaman stresli bir anda telefonla bildirim yapan veya bir bil
 - Etiketler alanların üstünde. Odak halkası koyu mürekkep (`focus`), 2 kalınlık. Hata, başarı ve bilgi kutuları renge ek olarak "Hata", "Başarılı", "Bilgi" etiketi taşır.
 - Sistem yazı tipi. Animasyon yok.
 
-### Harita ekranı
-Sıra: tek satırlık dönem açıklaması, harita, haritanın hemen altında seçilen bölgenin özeti, lejant, kompakt bölge listesi.
-- Harita kenardan kenara, yüksekliği pencerenin yaklaşık %46'sı (en az 300, en çok 460). Harita sağlayıcısının atıf yazısı haritanın içinde kalır, üzerine hiçbir öğe konmadı.
-- Bölgeler renkli alan olarak çizilir ve her bölgenin ortasında bant etiketi durur (`5–9`, `10–19`, `20+`, `Yetersiz veri`). **Yetersiz veri** gri ve kesik çizgilidir.
-- Seçilen bölgenin özeti (ad ve tam bant metni) haritanın hemen altındaki kutudadır. Kutunun yüksekliği sabittir, seçim değişince sayfa kaymaz.
-- Lejant tek satırda: üç mor ton ve gri kesik çizgili "Yetersiz veri". Her renk yazıyla yazılır.
-- Bölge listesi kompakt satırlardır (ad solda, bant sağda, soldaki şerit bant renginde). Satır bir düğmedir, dokununca bölgeyi seçer. Seçili satır açık mor zeminli ve kalın kenarlıklıdır. Liste haritanın erişilebilir karşılığıdır.
+### Harita ekranı (liste öncelikli)
+Sıra: kısa "Harita" başlığı (gezinme çubuğu), küçük etkileşimli harita kartı, "Bölgeler" başlığı ve altında dönem ile birim, sakin bölge satırları. En altta, kaydırma alanının dışında, sekme çubuğundan ayrı yüzen işlem kartı.
+- Harita kartı pencerenin yaklaşık %28'i (en az 190, en çok 280). İlk açılışta altındaki listenin birkaç satırı görünür. Harita sağlayıcısının atıf yazısı haritanın içinde kalır, üzerine hiçbir öğe konmadı.
+- Derinlik: önce yüzey rengi, ince kenarlık ve boşluk. Harita kartı ve alt işlem kartı mor-gri tonlu (`#3B2A66`), düşük opaklıklı gölge alır (`elevation`, `src/theme.ts`). Gölge dış kapsayıcıda (arka planlı), yuvarlatma ve kırpma iç kapsayıcıdadır (`DensityMap`). iOS `shadow*`, Android `elevation` kullanır.
+- Bölgeler haritada renkli alan olarak çizilir, ortasında bant etiketi durur. **Yetersiz veri** gri, kesik çizgili ve etiketlidir.
+- Bölge satırı: ad solda, sağda bant işareti ve metin (`5–9`, `10–19`, `20+`, `Yetersiz veri`). Üç mor ton dolu kutu, Yetersiz veri içi boş gri kesik çizgili nötr kutudur. Satır beyaz ve ince kenarlıklıdır. **Seçili satır** açık lavanta (`selected`) zeminli, ince mor (`action`) kenarlıklı ve `selected` erişilebilir durumludur. Haritadan veya listeden seçim ikisini birlikte vurgular. Ayrı lejant kaldırıldı, her satır işaret ve metni kendisi taşır.
+- **Seçili bölgede bildir** düğmesi alt kartta, parmakla rahat erişilen yerdedir. Bölge seçilmeyince pasiftir ve kartta "Önce haritadan veya listeden bir bölge seçin." yazar. Seçilince bölgenin adı ve bandı yazılır, düğme ana renge döner. Düğme bölgenin ortasını (`centroidOf`, Bildir'deki "Bölgeden seç" ile aynı hesap) `lat`, `lng`, `area`, `n` parametreleriyle Bildir'e taşır. Bildir parametreleri doğrular (sayı ve aralık), konumu yerleştirir ve "yaklaşık yer" notu gösterir. Kullanıcı konumu orada değiştirebilir, gönderim doğrulaması aynıdır.
+- Alt kart sekme çubuğundan lavanta boşluk, gölge ve kenarlıkla ayrılır. Liste kaydırma alanının içinde, alt kart dışındadır: son satırı kapatmaz.
 - Hiç bölge yoksa nedeni yazılır ve **Yenile** düğmesi çıkar.
 
 ### Bildir ekranı

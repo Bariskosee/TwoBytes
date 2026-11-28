@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
-import { router } from "expo-router";
-import { useRef, useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import { Share, StyleSheet, Text, View } from "react-native";
 import { createReport, createReportWithPhoto, describeDetail, describeError } from "@/api/client";
 import { AreaLocationOptions } from "@/components/area-location-options";
@@ -25,6 +25,29 @@ export default function ReportScreen() {
   const [description, setDescription] = useState("");
   const [photo, setPhoto] = useState<PickedPhoto | null>(null);
   const [outcome, setOutcome] = useState<Outcome>({ status: "idle" });
+  // Harita ekranından bölge seçilerek gelindiyse bölgenin adı. Konum elle değişince silinir.
+  const [areaNote, setAreaNote] = useState<string | null>(null);
+
+  // Harita ekranındaki "Seçili bölgede bildir" düğmesi bölgenin ortasını yaklaşık konum olarak getirir.
+  // Gelen değer doğrulanır. Geçersizse yok sayılır. Kullanıcı konumu haritada veya listeden değiştirebilir.
+  const params = useLocalSearchParams<{ lat?: string; lng?: string; area?: string; n?: string }>();
+  useEffect(() => {
+    if (!params.n || params.lat === undefined || params.lng === undefined) return;
+    const latitude = Number(params.lat);
+    const longitude = Number(params.lng);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+    if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return;
+    if (outcome.status === "success") startOver();
+    setLocation({ latitude, longitude });
+    setAreaNote(typeof params.area === "string" && params.area ? params.area : null);
+    // Yalnızca yeni bir gelişte (n değişince) çalışır.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.n]);
+
+  function changeLocation(next: Coordinate) {
+    setAreaNote(null);
+    setLocation(next);
+  }
 
   // Aynı anda ikinci dokunuşu engeller. State güncellemesi bir sonraki çizimde görünür, ref anında.
   const inFlight = useRef(false);
@@ -84,6 +107,7 @@ export default function ReportScreen() {
 
   function startOver() {
     attempt.current = null;
+    setAreaNote(null);
     setLocation(null);
     setOccurredAt(floorToMinute(new Date()));
     setDescription("");
@@ -126,8 +150,13 @@ export default function ReportScreen() {
   return (
     <Screen intro="Yeri ve zamanı seçin. Açıklama ve fotoğraf isteğe bağlıdır.">
       <FormSection title="1. Yer">
-        <LocationPicker value={location} onChange={setLocation} />
-        <AreaLocationOptions value={location} onChange={setLocation} />
+        {areaNote ? (
+          <Notice kind="info">
+            {areaNote} bölgesinin ortası yaklaşık yer olarak alındı. Haritada veya bölge listesinde değiştirebilirsiniz.
+          </Notice>
+        ) : null}
+        <LocationPicker value={location} onChange={changeLocation} />
+        <AreaLocationOptions value={location} onChange={changeLocation} />
       </FormSection>
 
       <FormSection title="2. Zaman">

@@ -96,12 +96,11 @@ export function DensityMap({
 }
 
 const styles = StyleSheet.create({
-  // Harita ekranın iki kenarına kadar uzanır (içerik kenar boşluğunu geri alır).
+  // İç kapsayıcı: yuvarlatma ve kırpma burada. Gölge, bunu saran dış kapsayıcıdadır (ekran dosyasında).
   frame: {
-    marginHorizontal: -space.s3,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.border,
+    borderRadius: radius.panel,
+    borderWidth: 1,
+    borderColor: colors.hairline,
     overflow: "hidden",
   },
   map: { flex: 1 },
