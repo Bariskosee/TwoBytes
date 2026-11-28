@@ -6,7 +6,7 @@ export const bandColor: Record<DensityBand, string> = {
   "5-9": colors.bandLow,
   "10-19": colors.bandMid,
   "20+": colors.bandHigh,
-  insufficient_data: colors.border,
+  insufficient_data: colors.insufficient,
 };
 
 export const bandOrder: DensityBand[] = ["5-9", "10-19", "20+", "insufficient_data"];

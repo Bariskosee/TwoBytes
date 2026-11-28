@@ -1,10 +1,11 @@
 import { useMemo } from "react";
-import { StyleSheet, View } from "react-native";
-import MapView, { Polygon } from "react-native-maps";
+import { StyleSheet, Text, View } from "react-native";
+import MapView, { Marker, Polygon } from "react-native-maps";
 import type { MapArea } from "@/api/contract";
 import { bandColor } from "@/lib/band-colors";
-import { regionFor, toPolygonCoordinates, withAlpha } from "@/lib/map-geometry";
-import { colors, radius } from "@/theme";
+import { bandInfo } from "@/lib/format";
+import { centroidOf, regionFor, toPolygonCoordinates, withAlpha } from "@/lib/map-geometry";
+import { colors, font, radius, space, tabularNums } from "@/theme";
 
 // Hiç bölge gelmezse gösterilecek yedek görünüm (üç demo bölgenin çevresi).
 const FALLBACK_REGION = {
@@ -16,16 +17,19 @@ const FALLBACK_REGION = {
 
 /**
  * Yayımlanan haftanın bölge yoğunluklarını haritada gösterir. Bölgeye dokunmak onu seçer.
- * Seçili bölge kalın çerçeveyle belirtilir. Bölgenin adı ve bandı haritanın altındaki metinde de yazılır.
+ * Her bölgenin ortasında bant etiketi durur, böylece bant yalnızca renkle okunmaz.
+ * Seçili bölge kalın çerçeveyle ve koyu etiketle belirtilir. Ad ve bant haritanın altındaki metinde de yazılır.
  */
 export function DensityMap({
   areas,
   selectedId,
   onSelect,
+  height,
 }: {
   areas: MapArea[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  height: number;
 }) {
   const region = useMemo(
     () => regionFor(areas.map((area) => area.boundary), FALLBACK_REGION),
@@ -33,7 +37,7 @@ export function DensityMap({
   );
 
   return (
-    <View style={styles.frame}>
+    <View style={[styles.frame, { height }]}>
       <MapView
         style={styles.map}
         initialRegion={region}
@@ -59,18 +63,56 @@ export function DensityMap({
             />
           );
         })}
+        {areas.map((area) => {
+          const center = centroidOf(area.boundary);
+          if (!center) return null;
+          const selected = area.id === selectedId;
+          return (
+            <Marker
+              // Görünüm değişiklikleri izlenmediği için seçim değişince işaretçi yeniden oluşturulur.
+              key={`label-${area.id}-${selected ? "secili" : "normal"}`}
+              coordinate={center}
+              anchor={{ x: 0.5, y: 0.5 }}
+              tracksViewChanges={false}
+              onPress={() => onSelect(area.id)}
+            >
+              <View
+                style={[
+                  styles.chip,
+                  { borderColor: bandColor[area.band] },
+                  selected && styles.chipSelected,
+                ]}
+              >
+                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                  {bandInfo[area.band].short}
+                </Text>
+              </View>
+            </Marker>
+          );
+        })}
       </MapView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // Harita ekranın iki kenarına kadar uzanır (içerik kenar boşluğunu geri alır).
   frame: {
-    height: 300,
-    borderRadius: radius.control,
-    borderWidth: 1,
+    marginHorizontal: -space.s3,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
     borderColor: colors.border,
     overflow: "hidden",
   },
   map: { flex: 1 },
+  chip: {
+    paddingHorizontal: space.s2,
+    paddingVertical: space.s1,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderRadius: radius.control,
+  },
+  chipSelected: { backgroundColor: colors.text, borderColor: colors.text },
+  chipText: { ...font.small, ...tabularNums, fontWeight: "700", color: colors.text },
+  chipTextSelected: { color: colors.surface },
 });

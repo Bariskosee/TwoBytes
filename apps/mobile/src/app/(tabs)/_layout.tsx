@@ -1,31 +1,40 @@
 import { Tabs } from "expo-router";
-import { colors, font, minTouch } from "@/theme";
+import { AppTabBar } from "@/components/app-tab-bar";
+import { colors } from "@/theme";
 
-// Sekmeler yalnızca metin etiketi taşır. Simge paketi eklenmedi.
+// Sayfa başlığını yerel gezinme çubuğu taşır: iOS güvenli alanını ve durum çubuğunu o yönetir.
+// Zemin ekranla aynı lavanta tonudur, durum çubuğu yazısı koyudur.
 const screenOptions = {
-  headerStyle: { backgroundColor: colors.canvas },
+  headerShown: true,
   headerShadowVisible: false,
+  headerStyle: { backgroundColor: colors.canvas },
+  headerTintColor: colors.text,
   headerTitleStyle: { color: colors.text, fontWeight: "700" as const },
-  tabBarActiveTintColor: colors.action,
-  tabBarInactiveTintColor: colors.muted,
-  tabBarStyle: {
-    backgroundColor: colors.surface,
-    borderTopColor: colors.hairline,
-    minHeight: minTouch + 8,
-  },
-  tabBarLabelStyle: { ...font.small, fontWeight: "600" as const },
-  tabBarIconStyle: { display: "none" as const },
-  tabBarItemStyle: { justifyContent: "center" as const },
 };
 
 export default function TabLayout() {
   return (
-    <Tabs screenOptions={screenOptions}>
-      <Tabs.Screen name="index" options={{ title: "Harita", tabBarAccessibilityLabel: "Yoğunluk haritası" }} />
-      <Tabs.Screen name="bildir" options={{ title: "Bildir", tabBarAccessibilityLabel: "Bildirim formu" }} />
-      <Tabs.Screen name="takip" options={{ title: "Takip", tabBarAccessibilityLabel: "Takip kodu sorgusu" }} />
-      <Tabs.Screen name="karne" options={{ title: "Karne", tabBarAccessibilityLabel: "Kurum karnesi" }} />
-      <Tabs.Screen name="baglanti" options={{ title: "Bağlantı", tabBarAccessibilityLabel: "API bağlantı denemesi" }} />
+    <Tabs screenOptions={screenOptions} tabBar={(props) => <AppTabBar {...props} />}>
+      <Tabs.Screen
+        name="index"
+        options={{ title: "Harita", headerTitle: "Bildirim yoğunluğu", tabBarAccessibilityLabel: "Yoğunluk haritası" }}
+      />
+      <Tabs.Screen
+        name="bildir"
+        options={{ title: "Bildir", headerTitle: "Bildirim oluştur", tabBarAccessibilityLabel: "Bildirim formu" }}
+      />
+      <Tabs.Screen
+        name="takip"
+        options={{ title: "Takip", headerTitle: "Takip kodu sorgusu", tabBarAccessibilityLabel: "Takip kodu sorgusu" }}
+      />
+      <Tabs.Screen
+        name="karne"
+        options={{ title: "Karne", headerTitle: "Kurum karnesi", tabBarAccessibilityLabel: "Kurum karnesi" }}
+      />
+      <Tabs.Screen
+        name="baglanti"
+        options={{ title: "Bağlantı", headerTitle: "Bağlantı denemesi", tabBarAccessibilityLabel: "API bağlantı denemesi" }}
+      />
     </Tabs>
   );
 }

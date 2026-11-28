@@ -2,7 +2,7 @@ import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
-import { Body, Button, Notice, Small } from "@/components/ui";
+import { Button, Notice, Small } from "@/components/ui";
 import { colors, radius, space } from "@/theme";
 
 export interface PickedPhoto {
@@ -69,9 +69,7 @@ export function PhotoField({
           resizeMode="cover"
           accessibilityLabel="Seçilen fotoğrafın önizlemesi"
         />
-      ) : (
-        <Body muted>Fotoğraf eklemek zorunlu değil.</Body>
-      )}
+      ) : null}
       <Button
         label={value ? "Başka fotoğraf seç" : "Fotoğraf seç"}
         variant="secondary"
@@ -91,10 +89,7 @@ export function PhotoField({
         />
       )}
       {error ? <Notice kind="error">{error}</Notice> : null}
-      <Small>
-        Fotoğrafta kişilerin yüzü veya kimlik bilgisi seçilebiliyorsa eklemeyin. Fotoğrafın üst verisi (konum bilgisi
-        gibi) sunucuda kaldırılır.
-      </Small>
+      <Small>Yüz veya kimlik bilgisi seçilebiliyorsa fotoğraf eklemeyin. Konum gibi üst veriler sunucuda kaldırılır.</Small>
     </View>
   );
 }

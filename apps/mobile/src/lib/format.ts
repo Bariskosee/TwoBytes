@@ -6,12 +6,16 @@ export const statusLabels: Record<ReportStatus, string> = {
   completed: "Tamamlandı",
 };
 
-export const bandInfo: Record<DensityBand, { label: string; fill: number }> = {
-  "5-9": { label: "5–9 bildirim", fill: 1 / 3 },
-  "10-19": { label: "10–19 bildirim", fill: 2 / 3 },
-  "20+": { label: "20 ve üzeri bildirim", fill: 1 },
-  insufficient_data: { label: "Yetersiz veri", fill: 0 },
+/** `label` tam metindir, `short` haritadaki küçük etiket içindir. */
+export const bandInfo: Record<DensityBand, { label: string; short: string; fill: number }> = {
+  "5-9": { label: "5–9 bildirim", short: "5–9", fill: 1 / 3 },
+  "10-19": { label: "10–19 bildirim", short: "10–19", fill: 2 / 3 },
+  "20+": { label: "20 ve üzeri bildirim", short: "20+", fill: 1 },
+  insufficient_data: { label: "Yetersiz veri", short: "Yetersiz veri", fill: 0 },
 };
+
+/** Takip durumunun sırası. Durum izi bu sırayla çizilir. */
+export const statusOrder: ReportStatus[] = ["in_review", "measure_planned", "completed"];
 
 /** "2026-11-16" -> "16.11.2026". */
 export function formatDay(day: string): string {
