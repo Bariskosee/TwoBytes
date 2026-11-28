@@ -9,6 +9,7 @@ import type {
   InstitutionKind,
   InstitutionProfileResponse,
 } from "@/lib/institution-contract";
+import { Notice } from "./notice";
 import { ReportDetail } from "./report-detail";
 import { areaLabel, formatDateTime, statusLabels } from "./report-labels";
 import { useInstitutionResource } from "./requests";
@@ -78,9 +79,9 @@ export function InstitutionPanel() {
               Kurumunuza yönlendirilen bildirimleri incelemek ve önlem kaydetmek için görevli hesabınızla giriş yapın.
             </p>
           </div>
-          {!client && <p role="alert" className={styles.error}>Kurum oturumu yapılandırılmamış.</p>}
+          {!client && <Notice kind="error">Kurum oturumu yapılandırılmamış.</Notice>}
           {client && userId === undefined && (
-            <p role="status" className={styles.muted}>Oturum denetleniyor…</p>
+            <p role="status" className={styles.checking}>Oturum denetleniyor…</p>
           )}
           {client && userId === null && <LoginForm client={client} sessionExpired={sessionExpired} />}
         </section>
@@ -125,7 +126,7 @@ function LoginForm({
   return (
     <form className={styles.form} onSubmit={signIn}>
       {sessionExpired && !error && (
-        <p className={styles.muted} role="status">Oturumunuz sona erdi. Yeniden giriş yapın.</p>
+        <Notice kind="info">Oturumunuz sona erdi. Devam etmek için yeniden giriş yapın.</Notice>
       )}
       <label>
         Kurum e-posta adresi
@@ -135,7 +136,7 @@ function LoginForm({
         Parola
         <input name="password" type="password" autoComplete="current-password" required />
       </label>
-      {error && <p className={styles.error} role="alert">{error}</p>}
+      {error && <Notice kind="error">{error}</Notice>}
       <button type="submit" className={styles.primary} disabled={pending}>
         {pending ? "Giriş yapılıyor…" : "Giriş yap"}
       </button>
@@ -344,12 +345,12 @@ function Inbox({
   return (
     <div className={styles.panel} lang="tr" data-institution={profile?.institution.kind}>
       <PanelHeader profile={profile}>
-        <button className={styles.signOut} onClick={signOut} disabled={signingOut}>
+        <button type="button" className={styles.signOut} onClick={signOut} disabled={signingOut}>
           {signingOut ? "Çıkış yapılıyor…" : "Çıkış yap"}
         </button>
       </PanelHeader>
       <main className={styles.inboxMain}>
-        {signOutError && <p className={styles.error} role="alert">Çıkış yapılamadı. Tekrar deneyin.</p>}
+        {signOutError && <Notice kind="error">Çıkış yapılamadı. Tekrar deneyin.</Notice>}
         <div className={styles.inboxHeading}>
           <div>
             <h1 ref={inboxTitle} tabIndex={-1}>Gelen kutusu</h1>
@@ -371,7 +372,7 @@ function Inbox({
               aria-pressed={filter === "all"}
               onClick={() => setFilter("all")}
             >
-              Tümü <span className={styles.count}>{reports.length}</span>
+              <span>Tümü</span> <span className={styles.count}>{reports.length}</span>
             </button>
             {STATUS_ORDER.map((status) => (
               <button
@@ -382,7 +383,7 @@ function Inbox({
                 aria-pressed={filter === status}
                 onClick={() => setFilter(status)}
               >
-                {statusLabels[status]} <span className={styles.count}>{counts[status]}</span>
+                <span>{statusLabels[status]}</span> <span className={styles.count}>{counts[status]}</span>
               </button>
             ))}
           </div>
@@ -391,11 +392,15 @@ function Inbox({
           <section className={styles.inbox} aria-label="Kurum bildirimleri">
             {error && (
               <div className={styles.inboxNotice}>
-                <p className={styles.error} role="alert">{error}</p>
-                <button className={styles.secondary} onClick={refresh}>Tekrar dene</button>
+                <Notice kind="error">{error}</Notice>
+                <button type="button" className={styles.secondary} onClick={refresh}>Tekrar dene</button>
               </div>
             )}
-            {!reports && !error && <p className={styles.inboxNotice} role="status">Bildirimler yükleniyor…</p>}
+            {!reports && !error && (
+              <div className={styles.inboxNotice}>
+                <p className={styles.checking} role="status">Bildirimler yükleniyor…</p>
+              </div>
+            )}
             {reports?.length === 0 && (
               <p className={styles.inboxNotice}>
                 {cursor ? "Bu sayfada bildirim yok." : "Kurumunuza atanmış henüz bir bildirim yok."}
@@ -417,12 +422,7 @@ function Inbox({
                     >
                       <span className={styles.rowTitle}>
                         <strong>{areaLabel(report.areaId, areaNames)}</strong>
-                        <span className={styles.rowBadges}>
-                          {freshIds.has(report.id) && <span className={styles.fresh}>Yeni</span>}
-                          <span className={styles.status} data-status={report.status}>
-                            {statusLabels[report.status]}
-                          </span>
-                        </span>
+                        {freshIds.has(report.id) && <span className={styles.fresh}>Yeni</span>}
                       </span>
                       <span className={styles.rowMetadata}>
                         <span>
@@ -431,6 +431,12 @@ function Inbox({
                         <span>
                           Bildirim: <time dateTime={report.submittedAt}>{formatDateTime(report.submittedAt)}</time>
                         </span>
+                      </span>
+                      <span className={styles.rowBadges}>
+                        <span className={styles.status} data-status={report.status}>
+                          {statusLabels[report.status]}
+                        </span>
+                        {report.id === selectedId && <span className={styles.selectedMark}>Seçili</span>}
                       </span>
                     </button>
                   </li>
@@ -442,7 +448,7 @@ function Inbox({
                 <button type="button" className={styles.secondary} disabled={!cursor} onClick={() => changePage()}>
                   Önceki
                 </button>
-                <span className={styles.muted}>Sayfa {cursorHistory.length + 1}</span>
+                <span className={styles.small}>Sayfa {cursorHistory.length + 1}</span>
                 <button
                   type="button"
                   className={styles.secondary}

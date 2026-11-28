@@ -1,26 +1,64 @@
 @import "tailwindcss";
 
+/*
+ * "Mürekkep Moru" paleti. Değerler ve rol adları mobildeki apps/mobile/src/theme.ts ile aynıdır.
+ * Palet değişirse önce mobil tema, sonra bu blok güncellenir.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --hg-canvas: #f6f4fa;
+  --hg-surface: #ffffff;
+  --hg-text: #241a38;
+  --hg-muted: #5c5470;
+  --hg-border: #857d9b;
+  --hg-hairline: #ddd7e8;
+  --hg-action: #5b36a3;
+  --hg-action-hover: #4a2a8a;
+  --hg-on-action: #ffffff;
+  --hg-selected: #eae0f8;
+  --hg-focus: #241a38;
+  --hg-error: #9c2525;
+  --hg-error-surface: #fbeded;
+  --hg-success: #245d32;
+  --hg-success-surface: #eaf4ec;
+  --hg-info-surface: #efeaf8;
+  --hg-disabled: #e6e2ee;
+  --hg-on-disabled: #5c5470;
+  --hg-inverse: #241a38;
+  --hg-on-inverse: #ffffff;
+  --hg-on-inverse-muted: #dcd3ee;
+
+  /* Boşluk 4, 8, 16, 24, 32, 48. Köşe 8 (kontrol) ve 12 (panel). */
+  --hg-s1: .25rem;
+  --hg-s2: .5rem;
+  --hg-s3: 1rem;
+  --hg-s4: 1.5rem;
+  --hg-s5: 2rem;
+  --hg-s6: 3rem;
+  --hg-radius-control: .5rem;
+  --hg-radius-panel: .75rem;
+  --hg-focus-width: 2px;
+
+  /* Yazı ölçeği 13, 16, 20, 25. Rem cinsinden, tarayıcı yazı boyutuyla büyür. */
+  --hg-font-small: .8125rem;
+  --hg-font-body: 1rem;
+  --hg-font-subhead: 1.25rem;
+  --hg-font-title: 1.5625rem;
+
+  --background: var(--hg-canvas);
+  --foreground: var(--hg-text);
+  color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: system-ui, sans-serif;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: system-ui, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
 }
