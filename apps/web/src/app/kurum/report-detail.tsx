@@ -3,6 +3,7 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import type { InstitutionMeasureAction, InstitutionReportResponse } from "@/lib/institution-contract";
 import { areaLabel, formatDate, formatDateTime, statusLabels } from "./report-labels";
+import { Notice } from "./notice";
 import { ReportPhoto } from "./report-photo";
 import {
   institutionRequest,
@@ -123,11 +124,15 @@ export function ReportDetail({ id, areaNames, revision, onChange, onClose, onSes
       </div>
       {reportResource.error && (
         <div className={styles.detailNotice}>
-          <p className={styles.error} role="alert">{reportResource.error}</p>
+          <Notice kind="error">{reportResource.error}</Notice>
           <button type="button" className={styles.secondary} onClick={onChange}>Tekrar dene</button>
         </div>
       )}
-      {!data && !reportResource.error && <p className={styles.detailNotice} role="status">Bildirim yükleniyor…</p>}
+      {!data && !reportResource.error && (
+        <div className={styles.detailNotice}>
+          <p className={styles.checking} role="status">Bildirim yükleniyor…</p>
+        </div>
+      )}
       {report && data && (
         <>
           <div className={styles.detailSection}>
@@ -173,12 +178,15 @@ export function ReportDetail({ id, areaNames, revision, onChange, onClose, onSes
             {report.hasPhoto && <ReportPhoto path={`${path}/photo`} onSessionExpired={onSessionExpired} />}
           </div>
           <div className={styles.detailSection}>
-            <h3>Önlem</h3>
-            {message && (
-              <p className={message.error ? styles.error : styles.success} role={message.error ? "alert" : "status"}>
-                {message.text}
-              </p>
-            )}
+            <div className={styles.sectionTitle}>
+              <h3>Önlem</h3>
+              {measure && (
+                <span className={styles.status} data-status={measure.completedAt ? "completed" : "measure_planned"}>
+                  {measure.completedAt ? "Tamamlandı" : "Planlandı"}
+                </span>
+              )}
+            </div>
+            {message && <Notice kind={message.error ? "error" : "success"}>{message.text}</Notice>}
             {measure ? (
               <>
                 <p className={styles.measureTitle}>{measure.title}</p>
@@ -218,7 +226,9 @@ export function ReportDetail({ id, areaNames, revision, onChange, onClose, onSes
                           required
                         />
                       </label>
-                      <p className={styles.muted} id="outcome-summary-help">Bu metin takip kodu ekranında görünür.</p>
+                      <p className={styles.small} id="outcome-summary-help">
+                        Bu metin, bildirimi yapan kişinin takip kodu ekranında görünür.
+                      </p>
                       <button type="submit" className={styles.primary}>
                         {saving ? "Kaydediliyor…" : "Önlemi tamamla"}
                       </button>
@@ -228,10 +238,12 @@ export function ReportDetail({ id, areaNames, revision, onChange, onClose, onSes
               </>
             ) : (
               <>
+                <p className={styles.muted}>
+                  Bu bildirim henüz bir önleme bağlı değil. Yeni bir önlem açın ya da kurumunuzdaki bir önleme bağlayın.
+                </p>
                 <div className={styles.measureModes} role="group" aria-label="Önlem işlemi">
                   <button
                     type="button"
-                    className={styles.secondary}
                     aria-pressed={measureMode === "open"}
                     disabled={saving}
                     onClick={() => setMeasureMode("open")}
@@ -240,7 +252,6 @@ export function ReportDetail({ id, areaNames, revision, onChange, onClose, onSes
                   </button>
                   <button
                     type="button"
-                    className={styles.secondary}
                     aria-pressed={measureMode === "link"}
                     disabled={saving}
                     onClick={() => setMeasureMode("link")}
@@ -288,7 +299,12 @@ export function ReportDetail({ id, areaNames, revision, onChange, onClose, onSes
                     </fieldset>
                   </form>
                 ) : (
-                  <p className={styles.muted}>Kurumunuzda bağlanabilecek bir önlem yok.</p>
+                  <div className={styles.stack}>
+                    <p className={styles.muted}>Kurumunuzda bağlanabilecek bir önlem yok.</p>
+                    <button type="button" className={styles.secondary} onClick={() => setMeasureMode("open")}>
+                      Yeni önlem aç
+                    </button>
+                  </div>
                 )}
               </>
             )}

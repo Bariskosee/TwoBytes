@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { InstitutionReportPhotoResponse } from "@/lib/institution-contract";
+import { Notice } from "./notice";
 import { institutionRequest, InstitutionRequestError } from "./requests";
 import styles from "./panel.module.css";
 
@@ -89,8 +90,8 @@ export function ReportPhoto({
       >
         {view.status === "open" ? "Fotoğrafı kapat" : "Fotoğrafı aç"}
       </button>
-      {view.status === "loading" && <p className={styles.muted} role="status">Fotoğraf yükleniyor…</p>}
-      {view.status === "error" && <p className={styles.error} role="alert">{view.message}</p>}
+      {view.status === "loading" && <p className={styles.checking} role="status">Fotoğraf yükleniyor…</p>}
+      {view.status === "error" && <Notice kind="error">{view.message}</Notice>}
       <div id="report-photo-preview" hidden={view.status !== "open"}>
         {view.status === "open" && (
           // eslint-disable-next-line @next/next/no-img-element -- The private preview uses an in-memory blob URL.
