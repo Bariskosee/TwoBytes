@@ -23,6 +23,7 @@ Hedef, büyükşehir ve ilçe belediyelerinin ilgili birimleriyle kamu destekli 
 
 ### Değişiklik günlüğü
 
+- **2026-11-28, `baris/mobile-demo-script`.** `apps/mobile` içine `npm run demo` eklendi. API adresini `:3000`'e sabitler, API'ye ulaşılabildiğini kontrol eder ve Expo'yu `--clear` ile başlatır. Sude için: bildirimlerin bir sunucuya gidip panele düşmemesinin sebebi `.env.local` dosyasındaki eski `:3187` adresiydi. Kendi dalınıza `main`'i alın (`git pull origin main`) ve Expo'yu bu komutla başlatın.
 - **2026-11-28, `baris/web-panel-design`.** Kurum paneli (`/kurum`) mobil uygulamanın "Mürekkep Moru" tasarım diline taşındı. Renkler mobil `theme.ts` ile aynı rol adlarıyla `globals.css` içinde `--hg-*` değişkenleri oldu (zemin `#F6F4FA`, ana işlem `#5B36A3`, seçili `#EAE0F8` vb.). Üst çubuk açık zeminli. Büyükşehir ve ilçe artık ayrı renk teması kullanmıyor: ortak mor tema, kurum adı, tür rozeti ve üst çubuktaki ince renk şeridiyle ayrılıyor. Durum etiketleri mobildeki durum bloğuyla aynı tonda (İncelemede mürekkep, Önlem planlandı mor, Tamamlandı yeşil). Hata, başarı ve bilgi kutuları "Hata", "Başarılı", "Bilgi" etiketi taşıyor. Seçili filtre ve önlem türü onay işaretiyle, seçili satır "Seçili" yazısıyla da gösteriliyor. Dar ekranda kontroller 48 px. Rota, oturum, yetki, API ve önlem işlemleri değişmedi. Sude için: istek yok; mobil dosyalara dokunulmadı.
 - **2026-11-28, `baris/readme-e2e-and-rehearsal`.** README'ye iOS simülatöründe yapılan uçtan uca testin sonuçları ve sunum öncesi iPhone provasının adımları eklendi. Sude için: `main`'i çekin ve Expo'yu `npx expo start --clear` ile başlatın; yeni `apps/mobile/.env` ayarı olmadan fotoğraflı gönderim çalışmaz.
 - **2026-11-28, `baris/fix-mobile-photo-upload`.** Mobilde fotoğraflı gönderim "Sunucuya ulaşılamadı" hatası veriyordu ve istek ağa hiç çıkmıyordu. Sebep: Expo 58 global `fetch` yerine `expo/fetch` kuruyor; bu uygulama FormData'daki React Native `{ uri, name, type }` dosya parçasını desteklemiyor. `apps/mobile/.env` içinde `EXPO_PUBLIC_USE_RN_FETCH=1` ile React Native `fetch` kullanılıyor. Sude için: `git pull` sonrası Expo'yu `npx expo start --clear` ile yeniden başlatın. iOS simülatöründe Maestro ile doğrulandı: fotoğrafsız ve fotoğraflı bildirim, Büyükşehir'e yönlendirme, takip (İncelemede, Önlem planlandı, Tamamlandı), panelde önlem bağlama ve tamamlama, karne 1/2'den 2/2'ye.
@@ -161,6 +162,16 @@ on conflict do nothing;
 Bildirim, takip, harita ve karne uçları bu dalda gerçek veriyi kullanır. Fotoğraf yükleme ve görüntüleme özel Supabase Storage üzerinden çalışır. Expo ekranları ve fiziksel telefon kabul testi Sude’nin entegrasyon aşamasındadır.
 
 ### Mobil uygulamayı çalıştırma
+
+**Sunum ve prova için tek komut** (`apps/mobile` içinde, `npm ci` sonrası):
+
+```bash
+npm run demo
+```
+
+Komut, API adresini `http://172.20.10.4:3000` olarak `.env.local` dosyasına yazar. Ardından API'ye ulaşılabildiğini kontrol eder ve Expo'yu `--clear` ile başlatır. API'ye ulaşılamazsa nedenini yazar ve Expo'yu başlatmaz. Başka bir adres için: `npm run demo -- http://ADRES:PORT`.
+
+Telefondaki Expo Go hangi Expo hesabıyla giriş yapmışsa, Expo'yu aynı hesapla giriş yapmış bilgisayarda çalıştırın. Aksi halde Expo Go "signed in to Expo Go as …, but not signed in to Expo CLI" hatası verir. Expo Go'da hesaptan çıkış yapılırsa herhangi bir bilgisayardaki Expo sunucusu açılabilir.
 
 Telefonda Expo Go uygulaması kurulu olmalı. Telefon ve API'yi çalıştıran bilgisayar aynı ağda olmalı. Komutlar `apps/mobile` içinde çalıştırılır.
 
